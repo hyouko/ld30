@@ -11,7 +11,6 @@ function love.load()
 	cam_vx = 0.0
 	cam_vy = 0.0
 	
-	
 	-- Control flags
 	press_up =  false
 	press_down = false
@@ -27,19 +26,99 @@ function love.load()
 	ticks = 0
 	
 	-- TEMP - generate a random batch of raft sprites
+	
+	for i = 1, 1000 do
+		sprites = {next = sprites,
+					x = math.random(-4000, 4000),
+					y = math.random(-4000, 4000),
+					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
+					s = 1,
+					img = raft[0],
+					layer = 1,
+					shadow = true,
+					effect = 0,
+					order = i,
+					controller = nil}
+	end
+	
 	for i = 1, 500 do
 		sprites = {next = sprites,
 					x = math.random(-4000, 4000),
 					y = math.random(-4000, 4000),
-					r = math.random(-math.pi * 0.25, math.pi * 0.25),
+					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
 					s = 1,
 					img = raft[0],
+					layer = 1,
 					shadow = true,
+					effect = 0,
+					order = i,
 					controller = nil}
 	end
 	
 	fps = 60
 end
+
+-- merge sort, for z-ordering
+function mergeSort(list)
+	insize = 1
+
+	if list == nil then return nil end
+
+	while 1 do
+		p = list
+		nmerges = 0
+		tail = nil
+		list = nil
+
+		while p ~= nil do
+			nmerges = nmerges + 1
+			q = p
+			psize = 0
+			for i = 1, insize, 1 do
+				psize = psize + 1
+				q = q.next
+				if not(q) then break end
+			end 
+			qsize = insize
+			while (psize > 0 or (qsize > 0 and q)) do
+				
+				if psize == 0 then
+					e = q
+					q = q.next
+					qsize  = qsize - 1
+				elseif (qsize == 0 or not(q)) then
+					e = p
+					p = p.next
+					psize = psize- 1
+				elseif (p.y <= q.y and p.layer == q.layer) or (p.layer < q.layer) then
+					e = p
+					p = p.next
+					psize = psize - 1
+				else
+					e = q
+					q = q.next
+					qsize = qsize - 1
+				end
+				if (tail) then
+					tail.next = e
+				else
+					list = e
+				end
+				tail = e
+			end
+			p = q
+		end
+
+		tail.next = nil
+
+		if nmerges <= 1 then
+			return list
+		end
+		
+		insize = insize * 2
+	end
+end
+
 
 function loadImages()
 	
@@ -66,11 +145,29 @@ function love.draw()
 		-- If applicable, render sprite shadows
 		if sprite.shadow then
 			love.graphics.setColor(20, 20, 20, 120)
-			love.graphics.draw(sprite.img, (sprite.x - cam_x) * scale_factor, (sprite.y + 10 - cam_y) * scale_factor, sprite.r, sprite.s * scale_factor, sprite.s * scale_factor)
+			love.graphics.draw(sprite.img,
+				(sprite.x - cam_x) * scale_factor,
+				(sprite.y + 10 - cam_y) * scale_factor,
+				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
-
-		love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(sprite.img, (sprite.x - cam_x) * scale_factor, (sprite.y - cam_y) * scale_factor, sprite.r, sprite.s * scale_factor, sprite.s * scale_factor)
+		
+		if sprite.effect == 1 then
+			love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
+			love.graphics.draw(sprite.img,
+				(sprite.x - cam_x) * scale_factor,
+				(sprite.y - cam_y) * scale_factor,
+				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
+		else
+			love.graphics.setColor(255, 255, 255)
+			love.graphics.draw(sprite.img,
+				(sprite.x - cam_x) * scale_factor,
+				(sprite.y - cam_y) * scale_factor,
+				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
+		end
+		
+		--if debug_on then
+		--	love.graphics.print(sprite.order .. "|" .. sprite.layer, (sprite.x - cam_x) * scale_factor, (sprite.y - cam_y) * scale_factor)
+		--end
 		
 		sprite = sprite.next
 	end
@@ -107,21 +204,24 @@ function love.update(dt)
 	cam_x = cam_x + cam_vx
 	cam_y = cam_y + cam_vy
 	
+	-- Identify if mouse is initiating scrolling
+	mouse_x = love.mouse.getX()
+	mouse_y = love.mouse.getY()
 	
 	-- Accelerate camera based on inputs
-	if press_up then
+	if press_up or mouse_y <= height * 0.1 then
 		cam_vy = cam_vy - 1
 	end
 	
-	if press_down then
+	if press_down or mouse_y >= height * 0.9 then
 		cam_vy = cam_vy + 1
 	end
 	
-	if press_left then
+	if press_left or mouse_x <= width * 0.1 then
 		cam_vx = cam_vx - 1
 	end
 	
-	if press_right then
+	if press_right or mouse_x >= width * 0.9 then
 		cam_vx = cam_vx + 1
 	end
 	
@@ -136,17 +236,31 @@ function love.update(dt)
 	
 	-- Decelerate camera
 	if math.abs(cam_vx) > 0.2 then
-		cam_vx = math.min(cam_vx * 0.9, 5)
+		cam_vx = cam_vx * 0.9
 	else
 		cam_vx = 0
 	end
 	
 	if math.abs(cam_vy) > 0.2 then
-		cam_vy = math.min(cam_vy * 0.9, 5)
+		cam_vy = cam_vy * 0.9
 	else
 		cam_vy = 0
 	end
 	
+	--Sort sprite objects
+	sprites = mergeSort(sprites)
+	
+	sprite = sprites
+	i = 1
+	while sprite do
+		
+		if sprite.controller ~= nil then
+			sprite.controller.update(dt)
+		end
+		sprite.order = i
+		i = i + 1
+		sprite = sprite.next
+	end
 	
 	fps = math.ceil((1 / dt + fps * 29) / 3) / 10
 end
@@ -193,3 +307,4 @@ end
 function love.mousereleased(x, y, button)
 	
 end
+
