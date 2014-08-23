@@ -33,7 +33,7 @@ function love.load()
 	ticks = 0
 	
 	-- Spawn some test raft sprites
-	for i = 1, 500 do
+	for i = 1, 200 do
 		sprites = addRaft(sprites)
 		
 		if math.random() < 0.2 then
@@ -47,67 +47,6 @@ function love.load()
 	end
 	
 	fps = 60
-end
-
--- merge sort, for z-ordering
-function mergeSort(list)
-	insize = 1
-
-	if list == nil then return nil end
-
-	while 1 do
-		p = list
-		nmerges = 0
-		tail = nil
-		list = nil
-
-		while p ~= nil do
-			nmerges = nmerges + 1
-			q = p
-			psize = 0
-			for i = 1, insize, 1 do
-				psize = psize + 1
-				q = q.next
-				if not(q) then break end
-			end 
-			qsize = insize
-			while (psize > 0 or (qsize > 0 and q)) do
-				
-				if psize == 0 then
-					e = q
-					q = q.next
-					qsize  = qsize - 1
-				elseif (qsize == 0 or not(q)) then
-					e = p
-					p = p.next
-					psize = psize- 1
-				elseif (p.y <= q.y and p.layer == q.layer) or (p.layer < q.layer) then
-					e = p
-					p = p.next
-					psize = psize - 1
-				else
-					e = q
-					q = q.next
-					qsize = qsize - 1
-				end
-				if (tail) then
-					tail.next = e
-				else
-					list = e
-				end
-				tail = e
-			end
-			p = q
-		end
-
-		tail.next = nil
-
-		if nmerges <= 1 then
-			return list
-		end
-		
-		insize = insize * 2
-	end
 end
 
 
@@ -125,6 +64,7 @@ function loadImages()
 	
 	raftguy = {}
 	raftguy[0] = love.graphics.newImage("gfx/raftguy_01.png")
+	raftguy[1] = love.graphics.newImage("gfx/raftguy_02.png")
 end
 
 function love.draw()
@@ -148,6 +88,8 @@ function love.draw()
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
+		
+		-- Apply various and sundry special effects
 		if sprite.effect == 1 then
 			love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
 			love.graphics.draw(sprite.img,
@@ -155,15 +97,7 @@ function love.draw()
 				sy,
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			
-			love.graphics.setLineWidth(3)
-			love.graphics.circle("line", sx, sy, 80 * scale_factor, 40)
 			
-			love.graphics.line(sx, sy, mouse_x, mouse_y)
-			
-			dir = angle(sx, sy,  mouse_x, mouse_y)
-			
-			love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir - 0.35) * 64, mouse_y + math.sin(dir - 0.35) * 64)
-			love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir + 0.35) * 64, mouse_y + math.sin(dir + 0.35) * 64)
 			
 		else
 			love.graphics.setColor(255, 255, 255)
@@ -173,13 +107,49 @@ function love.draw()
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
-		--if debug_on then
-		--	love.graphics.print(sprite.order .. "|" .. sprite.layer, (sprite.x - cam_x) * scale_factor, (sprite.y - cam_y) * scale_factor)
-		--end
-		
+		if sprite.t == "Raftguy" then
+			-- Draw food bar for the raft guy
+						
+			love.graphics.setColor(20, 40, 60)
+			love.graphics.rectangle("fill", sx - 64 * scale_factor, sy - 64 * scale_factor, 128 * scale_factor, 16 * scale_factor)
+			
+			love.graphics.setColor(255 * (1 - sprite.food / 100), 255 * (sprite.food / 100), 10)
+			love.graphics.rectangle("fill", sx - 62 * scale_factor, sy - 62 * scale_factor, 124 * (sprite.food / 100) * scale_factor, 12 * scale_factor)
+			
+			-- Show the anticipated cost of moving
+			if sprite.parent == selected_sprite then
+				food_cost = FOOD_LOSS_MOVE_RATE * math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, mouse_x, mouse_y) / scale_factor / 64.0)
+				
+				love.graphics.setColor(255, 10, 10)
+				love.graphics.rectangle("fill",
+					sx - 62 * scale_factor + 124 * ((sprite.food - food_cost) / 100) * scale_factor,
+					sy - 62 * scale_factor,
+					124 * (food_cost / 100.0) * scale_factor,
+					12 * scale_factor)
+			end
+				
+		end
+				
 		sprite = sprite.next
 	end
+	
+	-- Render movement UI bits
+	if selected_sprite ~= nil then
 		
+		love.graphics.setColor(220, 250, 255)
+		sx, sy = to_screenspace(selected_sprite.x, selected_sprite.y)
+		
+		love.graphics.setLineWidth(3)
+		love.graphics.circle("line", sx, sy, 80 * scale_factor, 40)
+			
+		love.graphics.line(sx, sy, mouse_x, mouse_y)
+			
+		dir = angle(sx, sy,  mouse_x, mouse_y)
+			
+		love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir - 0.35) * 64, mouse_y + math.sin(dir - 0.35) * 64)
+		love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir + 0.35) * 64, mouse_y + math.sin(dir + 0.35) * 64)
+	end
+	
 	if debug_on then
 		love.graphics.setColor(250, 250, 250)
 		love.graphics.print("FPS: " .. fps, 20, 20)
@@ -202,7 +172,6 @@ function drawWaterLayer(xvel, yvel, r)
 	end
 	
 end
-
 
 function love.update(dt)
 	ticks = ticks + dt
@@ -256,12 +225,31 @@ function love.update(dt)
 	end
 	
 	--Sort sprite objects
-	sprites = mergeSort(sprites)
+	sprites = mergeSort(sprites, sprite_compare)
 	
 	sprite = sprites
 	i = 1
 	while sprite do
 		
+		-- Check for collisions with other raft sprites
+		if sprite.t == "Raft" then
+			other = sprites
+			while other do
+				if other.t == "Raft" and other ~= sprite then
+					col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+					if col_dist < 128 then
+						dir = angle(sprite.x, sprite.y, other.x, other.y)
+						
+						sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
+						sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+					end
+				end
+				other = other.next
+			end
+		end
+		
+		
+		-- Run sprite controller
 		if sprite.controller ~= nil then
 			sprite.controller(sprite, dt)
 		end
@@ -322,7 +310,7 @@ function love.mousepressed(x, y, button)
 		
 		sx, sy = to_screenspace(sprite.x, sprite.y)
 		
-		if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor then
+		if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
 			selected_sprite = sprite
 		end
 		
@@ -339,13 +327,17 @@ end
 
 function love.mousereleased(x, y, button)
 	if selected_sprite ~= nil then
-		vel = dist(selection_startx, selection_starty, x, y) / scale_factor
+		vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
 		dir = -angle(selection_startx, selection_starty, x, y)
 		
-		selected_sprite.vx = -math.cos(dir) * vel / 64.0
-		selected_sprite.vy = math.sin(dir) * vel / 64.0
+		selected_sprite.vx = -math.cos(dir) * vel
+		selected_sprite.vy = math.sin(dir) * vel
 		
 		selected_sprite.effect = 0
+		
+		selected_sprite.child.food = selected_sprite.child.food - FOOD_LOSS_MOVE_RATE * vel
+		
+		selected_sprite = nil
 	end
 end
 
