@@ -32,6 +32,8 @@ function love.load()
 	-- Universal timer
 	ticks = 0
 	
+	zoom_timer = 0
+	
 	-- Spawn some test raft sprites
 	for i = 1, 200 do
 		sprites = addRaft(sprites)
@@ -178,8 +180,8 @@ function love.update(dt)
 	
 	--scale_factor = math.sin(ticks) * 0.25 + 1.0
 	
-	cam_x = cam_x + cam_vx
-	cam_y = cam_y + cam_vy
+	cam_x = cam_x + cam_vx / scale_factor
+	cam_y = cam_y + cam_vy / scale_factor
 	
 	-- Identify if mouse is initiating scrolling
 	mouse_x = love.mouse.getX()
@@ -203,12 +205,25 @@ function love.update(dt)
 	end
 	
 	-- Zoom in / out based on inputs
-	if zoom_in then
-		scale_factor = math.min(1.5, scale_factor * 1.005)
-	end
-	
-	if zoom_out then
-		scale_factor = math.max(0.5, scale_factor * 0.995)
+	if zoom_timer > ticks then
+		if zoom_in and scale_factor < 1.5 then
+			scale_factor = math.min(1.5, scale_factor * 1.01)
+			
+			cam_x = cam_x + (mouse_x - width / 3) * 0.04 * scale_factor
+			cam_y = cam_y + (mouse_y - height / 3) * 0.04 * scale_factor
+		end
+		
+		if zoom_out and scale_factor > 0.5 then
+			
+			scale_factor = math.max(0.5, scale_factor * 0.99)
+			
+			cam_x = cam_x + (mouse_x - width / 3) * -0.04 * scale_factor
+			cam_y = cam_y + (mouse_y - height / 3) * -0.04 * scale_factor
+			
+		end
+	else
+		zoom_in = false
+		zoom_out = false
 	end
 	
 	-- Decelerate camera
@@ -272,8 +287,12 @@ function love.keypressed(key)
 		press_right = true
 	elseif key == "q" then
 		zoom_in = true
+		zoom_out = false
+		zoom_timer = ticks + 10
 	elseif key == "e" then
+		zoom_in = false
 		zoom_out = true
+		zoom_timer = ticks + 10
 	elseif key == "2" then
 		screenshot = love.graphics.newScreenshot()
 		screenshot:encode('drift_screen.bmp')
@@ -291,8 +310,10 @@ function love.keyreleased(key)
 		press_right = false
 	elseif key == "q" then
 		zoom_in = false
+		zoom_timer = ticks - 0.5
 	elseif key == "e" then
 		zoom_out = false
+		zoom_timer = ticks - 0.5
 	elseif key == "escape" then
 		love.event.quit()
 	end
@@ -300,44 +321,65 @@ end
 
 function love.mousepressed(x, y, button)
 	
-	if selected_sprite ~= nil then
-		selected_sprite.effect = 0
-	end
-	
-	sprite = sprites
-	selected_sprite = nil
-	while sprite do
-		
-		sx, sy = to_screenspace(sprite.x, sprite.y)
-		
-		if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
-			selected_sprite = sprite
+	if button == "l" then
+		if selected_sprite ~= nil then
+			selected_sprite.effect = 0
 		end
 		
-		sprite = sprite.next
+		sprite = sprites
+		selected_sprite = nil
+		while sprite do
+			
+			sx, sy = to_screenspace(sprite.x, sprite.y)
+			
+			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
+				selected_sprite = sprite
+			end
+			
+			sprite = sprite.next
+		end
+		
+		if selected_sprite ~= nil then
+			selected_sprite.effect = 1
+			selection_startx = x
+			selection_starty = y
+		end
+	elseif button == "wd" then
+		zoom_out = true
+		zoom_in = false
+		
+		zoom_timer = ticks + 0.5
+		
+		print "Wheel down!"
+	elseif button == "wu" then
+		zoom_out = false
+		zoom_in = true
+		
+		zoom_timer = ticks + 0.5
+		
+		print "Wheel up!"
 	end
-	
-	if selected_sprite ~= nil then
-		selected_sprite.effect = 1
-		selection_startx = x
-		selection_starty = y
-	end
-	
 end
 
 function love.mousereleased(x, y, button)
-	if selected_sprite ~= nil then
-		vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
-		dir = -angle(selection_startx, selection_starty, x, y)
-		
-		selected_sprite.vx = -math.cos(dir) * vel
-		selected_sprite.vy = math.sin(dir) * vel
-		
-		selected_sprite.effect = 0
-		
-		selected_sprite.child.food = selected_sprite.child.food - FOOD_LOSS_MOVE_RATE * vel
-		
-		selected_sprite = nil
+	if button == "l" then
+		if selected_sprite ~= nil then
+			vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
+			dir = -angle(selection_startx, selection_starty, x, y)
+			
+			selected_sprite.vx = -math.cos(dir) * vel
+			selected_sprite.vy = math.sin(dir) * vel
+			
+			selected_sprite.effect = 0
+			
+			selected_sprite.child.food = selected_sprite.child.food - FOOD_LOSS_MOVE_RATE * vel
+			
+			selected_sprite = nil
+		end
+	elseif button == "wd" then
+		zoom_out = false
+	elseif button == "wu" then
+		zoom_in = false
 	end
 end
 
