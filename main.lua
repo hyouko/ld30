@@ -1,3 +1,10 @@
+require "util"
+
+-- Pseudo-object definitions
+require "raft"
+require "raftguy"
+require "fish"
+
 function love.load()
 	width, height = love.graphics.getDimensions()
 	
@@ -25,38 +32,24 @@ function love.load()
 	-- Universal timer
 	ticks = 0
 	
-	-- TEMP - generate a random batch of raft sprites
-	
-	for i = 1, 1000 do
-		sprites = {next = sprites,
-					x = math.random(-4000, 4000),
-					y = math.random(-4000, 4000),
-					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
-					s = 1,
-					img = raft[0],
-					layer = 1,
-					shadow = true,
-					effect = 0,
-					order = i,
-					controller = nil}
+	-- Spawn some test raft sprites
+	for i = 1, 500 do
+		sprites = addRaft(sprites)
+		
+		if math.random() < 0.2 then
+			sprites = addRaftguy(sprites, sprites)
+		end
 	end
 	
+	-- Spawn some test fish
 	for i = 1, 500 do
-		sprites = {next = sprites,
-					x = math.random(-4000, 4000),
-					y = math.random(-4000, 4000),
-					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
-					s = 1,
-					img = raft[0],
-					layer = 1,
-					shadow = true,
-					effect = 0,
-					order = i,
-					controller = nil}
+		sprites = addFish(sprites)
 	end
 	
 	fps = 60
 end
+
+
 
 -- merge sort, for z-ordering
 function mergeSort(list)
@@ -128,6 +121,12 @@ function loadImages()
 	
 	raft = {}
 	raft[0] = love.graphics.newImage("gfx/raft_01.png")
+	
+	fish = {}
+	fish[0] = love.graphics.newImage("gfx/fish_01.png")
+	
+	raftguy = {}
+	raftguy[0] = love.graphics.newImage("gfx/raftguy_01.png")
 end
 
 function love.draw()
@@ -255,7 +254,7 @@ function love.update(dt)
 	while sprite do
 		
 		if sprite.controller ~= nil then
-			sprite.controller.update(dt)
+			sprite.controller(sprite, dt)
 		end
 		sprite.order = i
 		i = i + 1
