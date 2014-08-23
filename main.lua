@@ -49,8 +49,6 @@ function love.load()
 	fps = 60
 end
 
-
-
 -- merge sort, for z-ordering
 function mergeSort(list)
 	insize = 1
@@ -140,27 +138,38 @@ function love.draw()
 	-- Render all sprites
 	sprite = sprites
 	while sprite do
-		
+		sx, sy = to_screenspace(sprite.x, sprite.y)
 		-- If applicable, render sprite shadows
 		if sprite.shadow then
 			love.graphics.setColor(20, 20, 20, 120)
 			love.graphics.draw(sprite.img,
-				(sprite.x - cam_x) * scale_factor,
-				(sprite.y + 10 - cam_y) * scale_factor,
+				sx,
+				sy + 10 * scale_factor,
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
 		if sprite.effect == 1 then
 			love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
 			love.graphics.draw(sprite.img,
-				(sprite.x - cam_x) * scale_factor,
-				(sprite.y - cam_y) * scale_factor,
+				sx,
+				sy,
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
+			
+			love.graphics.setLineWidth(3)
+			love.graphics.circle("line", sx, sy, 80 * scale_factor, 40)
+			
+			love.graphics.line(sx, sy, mouse_x, mouse_y)
+			
+			dir = angle(sx, sy,  mouse_x, mouse_y)
+			
+			love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir - 0.35) * 64, mouse_y + math.sin(dir - 0.35) * 64)
+			love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir + 0.35) * 64, mouse_y + math.sin(dir + 0.35) * 64)
+			
 		else
 			love.graphics.setColor(255, 255, 255)
 			love.graphics.draw(sprite.img,
-				(sprite.x - cam_x) * scale_factor,
-				(sprite.y - cam_y) * scale_factor,
+				sx,
+				sy,
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
@@ -296,14 +305,47 @@ function love.keyreleased(key)
 		zoom_in = false
 	elseif key == "e" then
 		zoom_out = false
+	elseif key == "escape" then
+		love.event.quit()
 	end
 end
 
 function love.mousepressed(x, y, button)
 	
+	if selected_sprite ~= nil then
+		selected_sprite.effect = 0
+	end
+	
+	sprite = sprites
+	selected_sprite = nil
+	while sprite do
+		
+		sx, sy = to_screenspace(sprite.x, sprite.y)
+		
+		if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor then
+			selected_sprite = sprite
+		end
+		
+		sprite = sprite.next
+	end
+	
+	if selected_sprite ~= nil then
+		selected_sprite.effect = 1
+		selection_startx = x
+		selection_starty = y
+	end
+	
 end
 
 function love.mousereleased(x, y, button)
-	
+	if selected_sprite ~= nil then
+		vel = dist(selection_startx, selection_starty, x, y) / scale_factor
+		dir = -angle(selection_startx, selection_starty, x, y)
+		
+		selected_sprite.vx = -math.cos(dir) * vel / 64.0
+		selected_sprite.vy = math.sin(dir) * vel / 64.0
+		
+		selected_sprite.effect = 0
+	end
 end
 

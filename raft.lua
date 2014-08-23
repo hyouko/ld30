@@ -1,6 +1,7 @@
 require "util"
 
-RAFT_DECEL = 0.9
+RAFT_DECEL = 0.98
+RAFT_TURN = 0.9
 
 function addRaft(list)
 	list = {next = list,
@@ -25,7 +26,9 @@ function addRaft(list)
 							
 							-- Update rotation of raft sprite if moving
 							if dist(0, 0, self.vx, self.vy) > 0.1 then
-								self.r = math.atan2(self.vy, self.vx)
+								newdir = math.atan2(self.vy, self.vx)
+								self.r = math.atan2(math.sin(self.r) * RAFT_TURN + math.sin(newdir) * (1 - RAFT_TURN), math.cos(self.r) * RAFT_TURN + math.cos(newdir) * (1 - RAFT_TURN))	
+								
 							end
 							
 							-- Decelerate raft

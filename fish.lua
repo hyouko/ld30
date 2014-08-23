@@ -2,6 +2,7 @@ require "util"
 
 function addFish(list)
 	list = {next = list,
+					t = "fish",
 					x = math.random(-4000, 4000),
 					y = math.random(-4000, 4000),
 					r = math.random() * math.pi * 2 - math.pi,
