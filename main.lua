@@ -11,19 +11,32 @@ function love.load()
 	cam_vx = 0.0
 	cam_vy = 0.0
 	
+	
+	-- Control flags
 	press_up =  false
 	press_down = false
 	press_left = false
 	press_right = false
 	
 	zoom_in = false
-	
 	zoom_out = false
 	
 	scale_factor = 1.0
 	
 	-- Universal timer
 	ticks = 0
+	
+	-- TEMP - generate a random batch of raft sprites
+	for i = 1, 500 do
+		sprites = {next = sprites,
+					x = math.random(-4000, 4000),
+					y = math.random(-4000, 4000),
+					r = math.random(-math.pi * 0.25, math.pi * 0.25),
+					s = 1,
+					img = raft[0],
+					shadow = true,
+					controller = nil}
+	end
 	
 	fps = 60
 end
@@ -34,10 +47,11 @@ function loadImages()
 	water = {}
 	water[0] = love.graphics.newImage("gfx/water_01.png")
 	
+	raft = {}
+	raft[0] = love.graphics.newImage("gfx/raft_01.png")
 end
 
 function love.draw()
-	
 	love.graphics.setColor(10, 100, 210)
 	love.graphics.rectangle('fill', 0, 0, width, height)
 	
@@ -45,14 +59,32 @@ function love.draw()
 	drawWaterLayer(-10, 30, math.pi / 2)
 	drawWaterLayer(15, 0, math.pi * 1.5)
 	
+	-- Render all sprites
+	sprite = sprites
+	while sprite do
+		
+		-- If applicable, render sprite shadows
+		if sprite.shadow then
+			love.graphics.setColor(20, 20, 20, 120)
+			love.graphics.draw(sprite.img, (sprite.x - cam_x) * scale_factor, (sprite.y + 10 - cam_y) * scale_factor, sprite.r, sprite.s * scale_factor, sprite.s * scale_factor)
+		end
+
+		love.graphics.setColor(255, 255, 255)
+		love.graphics.draw(sprite.img, (sprite.x - cam_x) * scale_factor, (sprite.y - cam_y) * scale_factor, sprite.r, sprite.s * scale_factor, sprite.s * scale_factor)
+		
+		sprite = sprite.next
+	end
+		
 	if debug_on then
 		love.graphics.setColor(250, 250, 250)
 		love.graphics.print("FPS: " .. fps, 20, 20)
 		love.graphics.print("CamX: " .. math.ceil(cam_x  * 10) / 10, 20, 40)
 		love.graphics.print("CamY: " .. math.ceil(cam_y  * 10) / 10, 120, 40)
 	end
+	
 end
 
+-- Draw an animating layer of water
 function drawWaterLayer(xvel, yvel, r)
 	
 	x_offset = (xvel * ticks - cam_x) % 128
@@ -63,6 +95,7 @@ function drawWaterLayer(xvel, yvel, r)
 			love.graphics.draw(water[0], x, y, r, scale_factor, scale_factor)	
 		end
 	end
+	
 end
 
 
@@ -131,6 +164,9 @@ function love.keypressed(key)
 		zoom_in = true
 	elseif key == "e" then
 		zoom_out = true
+	elseif key == "2" then
+		screenshot = love.graphics.newScreenshot()
+		screenshot:encode('drift_screen.bmp')
 	end
 end
 
