@@ -114,6 +114,7 @@ function rope_exists(ropes, a, b)
 	return false
 end
 
+
 function get_rope_forces(rope)
 	a_ax = 0
 	a_ay = 0
@@ -128,11 +129,11 @@ function get_rope_forces(rope)
 			dp = dot_prod(rope.b.vx, rope.b.vy, math.cos(rope_dir), math.sin(rope_dir))
 				
 			if dp > 0 then
-				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1
-				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1
+				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 96.0) * 0.1
+				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 96.0) * 0.1
 			else
-				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1 * 0.2
-				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1 * 0.2
+				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 96.0) * 0.1 * 0.2
+				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 96.0) * 0.1 * 0.2
 			end
 			
 		end

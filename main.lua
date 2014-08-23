@@ -50,6 +50,15 @@ function love.load()
 		sprites = addFish(sprites)
 	end
 	
+	-- Spawn our hero!
+	
+	sprites = addRaft(sprites)
+	
+	sprites.x = 50
+	sprites.y = 50
+	sprites = addRaftguy(sprites, sprites)
+	sprites.state = "Active"
+	sprites.img = raftguy[0]
 	
 	ropes = nil
 	
@@ -72,6 +81,7 @@ function loadImages()
 	raftguy = {}
 	raftguy[0] = love.graphics.newImage("gfx/raftguy_01.png")
 	raftguy[1] = love.graphics.newImage("gfx/raftguy_02.png")
+	raftguy[2] = love.graphics.newImage("gfx/raftguy_03.png")
 end
 
 function love.draw()
@@ -351,8 +361,18 @@ function love.update(dt)
 					if other.t == "Fish" then
 						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 						if col_dist < 128 then
-							if sprite.child ~= nil and sprite.child.food > 0 then
+							if sprite.child ~= nil and sprite.child.state == "Active" then
 								sprite.child.food = math.min(100, sprite.child.food + FISH_FOOD_VAL)
+								
+								-- Feed all other actives
+								feed = sprites
+								while feed do
+									if feed.t == "Raftguy" and feed.state == "Active" then
+										feed.food = math.min(100, feed.food + FISH_SHARE_VAL)
+									end
+									feed = feed.next
+								end
+								
 								
 								-- Remove the fish 
 								if  last ~= nil  then
@@ -451,7 +471,7 @@ function love.mousepressed(x, y, button)
 			
 			sx, sy = to_screenspace(sprite.x, sprite.y)
 			
-			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
+			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state == "Active" then
 				selected_sprite = sprite
 			end
 			
@@ -470,7 +490,7 @@ function love.mousepressed(x, y, button)
 			
 			sx, sy = to_screenspace(sprite.x, sprite.y)
 			
-			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
+			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state == "Active" then
 				rope_sprite = sprite
 			end
 			
@@ -535,6 +555,11 @@ function love.mousereleased(x, y, button)
 			
 			if target_sprite ~= nil and rope_sprite ~= target_sprite and not rope_exists(ropes, target_sprite, rope_sprite) and length <= ROPE_MAX_LENGTH then
 				ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
+				
+				if target_sprite.child ~= nil and target_sprite.child.state == "Sleep" then
+					target_sprite.child.state = "Active"
+					target_sprite.child.img = raftguy[0]
+				end
 			end
 			
 			rope_sprite.effect = 0

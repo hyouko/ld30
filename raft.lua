@@ -34,9 +34,16 @@ function addRaft(list)
 								
 							end
 							
-							-- Decelerate raft
 							self.vx = self.vx * RAFT_DECEL
 							self.vy = self.vy * RAFT_DECEL
+							
+							-- Decelerate raft
+							while dist(0, 0, self.vx, self.vy) > RAFT_MAX_VEL do
+								self.vx = self.vx * RAFT_DECEL
+								self.vy = self.vy * RAFT_DECEL
+							end
+							
+							
 						end}
 	return list
 end
