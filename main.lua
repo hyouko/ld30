@@ -5,6 +5,8 @@ require "raft"
 require "raftguy"
 require "fish"
 
+require "rope"
+
 function love.load()
 	width, height = love.graphics.getDimensions()
 	
@@ -48,6 +50,9 @@ function love.load()
 		sprites = addFish(sprites)
 	end
 	
+	
+	ropes = nil
+	
 	fps = 60
 end
 
@@ -77,6 +82,33 @@ function love.draw()
 	drawWaterLayer(-10, 30, math.pi / 2)
 	drawWaterLayer(15, 0, math.pi * 1.5)
 	
+	-- Render all ropes
+	rope = ropes
+	while rope do
+		a_sx, a_sy = to_screenspace(rope.a.x, rope.a.y)
+		b_sx, b_sy = to_screenspace(rope.b.x, rope.b.y)
+		
+		love.graphics.setColor(20, 20, 20)
+		
+		love.graphics.setLineWidth(2)
+		
+		love.graphics.line(a_sx, a_sy, b_sx, b_sy)
+		
+		if rope_debug then
+			a_ax, a_ay, b_ax, b_ay = get_rope_forces(rope)
+			
+			love.graphics.setColor(255, 0, 0)
+			
+			love.graphics.line(a_sx, a_sy, a_sx + a_ax * 64, a_sy + a_ay * 64)
+			love.graphics.circle("fill", a_sx + a_ax * 64, a_sy + a_ay * 64, 10, 10)
+			
+			love.graphics.line(b_sx, b_sy, b_sx + b_ax * 64, b_sy + b_ay * 64)
+			love.graphics.circle("fill", b_sx + b_ax * 64, b_sy + b_ay * 64, 10, 10)
+		end
+		
+		rope = rope.next
+	end
+	
 	-- Render all sprites
 	sprite = sprites
 	while sprite do
@@ -90,7 +122,6 @@ function love.draw()
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
-		
 		-- Apply various and sundry special effects
 		if sprite.effect == 1 then
 			love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
@@ -99,7 +130,12 @@ function love.draw()
 				sy,
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			
-			
+		elseif sprite.effect == 2 then
+			love.graphics.setColor(255, math.sin(ticks) * 64 + 191, math.sin(ticks) * 64 + 191)
+			love.graphics.draw(sprite.img,
+				sx,
+				sy,
+				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			
 		else
 			love.graphics.setColor(255, 255, 255)
@@ -135,6 +171,9 @@ function love.draw()
 		sprite = sprite.next
 	end
 	
+	
+	
+	
 	-- Render movement UI bits
 	if selected_sprite ~= nil then
 		
@@ -150,6 +189,21 @@ function love.draw()
 			
 		love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir - 0.35) * 64, mouse_y + math.sin(dir - 0.35) * 64)
 		love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir + 0.35) * 64, mouse_y + math.sin(dir + 0.35) * 64)
+	end
+	
+	if rope_sprite ~= nil then
+		love.graphics.setColor(255, 250, 220)
+		sx, sy = to_screenspace(rope_sprite.x, rope_sprite.y)
+		
+		love.graphics.setLineWidth(3)
+		love.graphics.circle("line", sx, sy, 80 * scale_factor, 40)
+			
+		love.graphics.line(sx, sy, mouse_x, mouse_y)
+			
+		dir = angle(sx, sy,  mouse_x, mouse_y)
+			
+		love.graphics.line(mouse_x - math.cos(dir - 0.5) * 64, mouse_y - math.sin(dir - 0.5) * 64, mouse_x + math.cos(dir - 0.5) * 64, mouse_y + math.sin(dir - 0.5) * 64)
+		love.graphics.line(mouse_x - math.cos(dir + 0.5) * 64, mouse_y - math.sin(dir + 0.5) * 64, mouse_x + math.cos(dir + 0.5) * 64, mouse_y + math.sin(dir + 0.5) * 64)
 	end
 	
 	if debug_on then
@@ -206,19 +260,19 @@ function love.update(dt)
 	
 	-- Zoom in / out based on inputs
 	if zoom_timer > ticks then
-		if zoom_in and scale_factor < 1.5 then
-			scale_factor = math.min(1.5, scale_factor * 1.01)
+		if zoom_in and scale_factor < 2 then
+			scale_factor = math.min(2, scale_factor * 1.01)
 			
-			cam_x = cam_x + (mouse_x - width / 3) * 0.04 * scale_factor
-			cam_y = cam_y + (mouse_y - height / 3) * 0.04 * scale_factor
+			cam_x = cam_x + (mouse_x - width / 2) * 0.04 / scale_factor
+			cam_y = cam_y + (mouse_y - height / 2) * 0.04 / scale_factor
 		end
 		
-		if zoom_out and scale_factor > 0.5 then
+		if zoom_out and scale_factor > 0.25 then
 			
-			scale_factor = math.max(0.5, scale_factor * 0.99)
+			scale_factor = math.max(0.25, scale_factor * 0.99)
 			
-			cam_x = cam_x + (mouse_x - width / 3) * -0.04 * scale_factor
-			cam_y = cam_y + (mouse_y - height / 3) * -0.04 * scale_factor
+			cam_x = cam_x + (mouse_x - width / 2) * -0.02 / scale_factor
+			cam_y = cam_y + (mouse_y - height / 2) * -0.02 / scale_factor
 			
 		end
 	else
@@ -242,8 +296,26 @@ function love.update(dt)
 	--Sort sprite objects
 	sprites = mergeSort(sprites, sprite_compare)
 	
+	
+	-- Handle rope constraints
+	
+	rope = ropes
+	while rope do
+		-- If objects have drifted further than the length of the rope, apply appropriate forces to bring them in check
+		a_ax, a_ay, b_ax, b_ay = get_rope_forces(rope)
+		
+		rope.a.vx = rope.a.vx + a_ax
+		rope.a.vy = rope.a.vy + a_ay
+		
+		rope.b.vx = rope.b.vx + b_ax
+		rope.b.vy = rope.b.vy + b_ay
+		
+		rope = rope.next
+	end
+	
 	sprite = sprites
 	i = 1
+	
 	while sprite do
 		
 		-- Check for collisions with other raft sprites
@@ -344,20 +416,39 @@ function love.mousepressed(x, y, button)
 			selection_startx = x
 			selection_starty = y
 		end
+	elseif button == "r" then
+		sprite = sprites
+		rope_sprite = nil
+		while sprite do
+			
+			sx, sy = to_screenspace(sprite.x, sprite.y)
+			
+			if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.food > 0 then
+				rope_sprite = sprite
+			end
+			
+			sprite = sprite.next
+		end
+		
+		if rope_sprite ~= nil then
+			rope_sprite.effect = 2
+			rope_startx = x
+			rope_starty = y
+		end
+		
 	elseif button == "wd" then
 		zoom_out = true
 		zoom_in = false
 		
-		zoom_timer = ticks + 0.5
+		zoom_timer = ticks + 0.25
 		
-		print "Wheel down!"
+		
 	elseif button == "wu" then
 		zoom_out = false
 		zoom_in = true
 		
-		zoom_timer = ticks + 0.5
-		
-		print "Wheel up!"
+		zoom_timer = ticks + 0.25
+
 	end
 end
 
@@ -369,12 +460,37 @@ function love.mousereleased(x, y, button)
 			
 			selected_sprite.vx = -math.cos(dir) * vel
 			selected_sprite.vy = math.sin(dir) * vel
-			
+						
 			selected_sprite.effect = 0
 			
 			selected_sprite.child.food = selected_sprite.child.food - FOOD_LOSS_MOVE_RATE * vel
 			
 			selected_sprite = nil
+		end
+	elseif button == "r" then
+		if rope_sprite ~= nil then
+			sprite = sprites
+			target_sprite = nil
+			while sprite do
+				
+				sx, sy = to_screenspace(sprite.x, sprite.y)
+				
+				if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor then
+					target_sprite = sprite
+				end
+				
+				sprite = sprite.next
+			end
+			
+			if target_sprite ~= nil then
+				ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
+			end
+			
+			rope_sprite.effect = 0
+			
+			rope_sprite = nil
+		
+			
 		end
 	elseif button == "wd" then
 		zoom_out = false

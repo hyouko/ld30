@@ -2,8 +2,16 @@ function dist(x1, y1, x2, y2)
 	return math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
 end
 
+function sprite_dist(a, b)
+	return dist(a.x, a.y, b.x, b.y)
+end
+
 function angle(x1, y1, x2, y2)
 	return math.atan2((y1 - y2), (x1 - x2))
+end
+
+function angle_avg(a1, a2, a1_weight)
+	return math.atan2(math.sin(a1) * a1_weight + math.sin(a2) * (1 - a1_weight), math.cos(a1) * a1_weight + math.cos(a2) * (1 - a1_weight))
 end
 
 function to_screenspace(x, y)
@@ -12,6 +20,15 @@ end
 
 function val_clamp(val, min, max)
 	return math.min(max, math.max(min, val))
+end
+
+function normalize(x, y)
+	length = dist(0, 0, x, y)
+	return x / length, y / length
+end
+
+function dot_prod(x1, y1, x2, y2)
+	return x1 * x2 + y1 * y2
 end
 
 -- merge sort, for z-ordering
@@ -77,4 +94,31 @@ end
 
 function sprite_compare(p, q)
 	return (p.y <= q.y and p.layer == q.layer) or (p.layer < q.layer)
+end
+
+
+function get_rope_forces(rope)
+	a_ax = 0
+	a_ay = 0
+	b_ax = 0
+	b_ay = 0
+	
+	if dist(rope.a.x, rope.a.y, rope.b.x, rope.b.y) > rope.length then			
+		
+			rope_dir = angle(rope.a.x, rope.a.y, rope.b.x, rope.b.y)
+			rope_dist = dist(rope.a.x, rope.a.y, rope.b.x, rope.b.y)
+			
+			dp = dot_prod(rope.b.vx, rope.b.vy, math.cos(rope_dir), math.sin(rope_dir))
+				
+			if dp > 0 then
+				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1
+				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1
+			else
+				b_ax = math.cos(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1 * 0.2
+				b_ay = math.sin(rope_dir) * math.exp((rope_dist - rope.length) / 64.0) * 0.1 * 0.2
+			end
+			
+		end
+		
+	return a_ax, a_ay, b_ax, b_ay
 end

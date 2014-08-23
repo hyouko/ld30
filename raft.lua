@@ -30,7 +30,7 @@ function addRaft(list)
 							-- Update rotation of raft sprite if moving
 							if dist(0, 0, self.vx, self.vy) > RAFT_TURN_THRESHOLD then
 								newdir = math.atan2(self.vy, self.vx)
-								self.r = math.atan2(math.sin(self.r) * RAFT_TURN + math.sin(newdir) * (1 - RAFT_TURN), math.cos(self.r) * RAFT_TURN + math.cos(newdir) * (1 - RAFT_TURN))	
+								self.r = angle_avg(self.r, newdir, RAFT_TURN)	
 								
 							end
 							

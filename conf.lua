@@ -6,3 +6,5 @@ function love.conf(t)
 end
 
 debug_on = true
+
+rope_debug = false
