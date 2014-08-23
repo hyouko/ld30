@@ -18,6 +18,10 @@ function to_screenspace(x, y)
 	return (x - cam_x) * scale_factor, (y - cam_y) * scale_factor
 end
 
+function to_worldspace(x, y)
+	return x / scale_factor + cam_x, y / scale_factor + cam_y
+end
+
 function val_clamp(val, min, max)
 	return math.min(max, math.max(min, val))
 end
@@ -96,6 +100,19 @@ function sprite_compare(p, q)
 	return (p.y <= q.y and p.layer == q.layer) or (p.layer < q.layer)
 end
 
+function rope_exists(ropes, a, b)
+	rope = ropes
+	exists = false
+	while rope do
+		if (rope.a == a and rope.b == b) or (rope.b == a and rope.a == b) then
+			return true
+		end
+		
+		rope = rope.next
+	end
+	
+	return false
+end
 
 function get_rope_forces(rope)
 	a_ax = 0

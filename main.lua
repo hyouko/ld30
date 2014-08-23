@@ -171,9 +171,6 @@ function love.draw()
 		sprite = sprite.next
 	end
 	
-	
-	
-	
 	-- Render movement UI bits
 	if selected_sprite ~= nil then
 		
@@ -191,6 +188,7 @@ function love.draw()
 		love.graphics.line(mouse_x, mouse_y, mouse_x + math.cos(dir + 0.35) * 64, mouse_y + math.sin(dir + 0.35) * 64)
 	end
 	
+	-- Render rope targeting
 	if rope_sprite ~= nil then
 		love.graphics.setColor(255, 250, 220)
 		sx, sy = to_screenspace(rope_sprite.x, rope_sprite.y)
@@ -201,9 +199,17 @@ function love.draw()
 		love.graphics.line(sx, sy, mouse_x, mouse_y)
 			
 		dir = angle(sx, sy,  mouse_x, mouse_y)
-			
-		love.graphics.line(mouse_x - math.cos(dir - 0.5) * 64, mouse_y - math.sin(dir - 0.5) * 64, mouse_x + math.cos(dir - 0.5) * 64, mouse_y + math.sin(dir - 0.5) * 64)
-		love.graphics.line(mouse_x - math.cos(dir + 0.5) * 64, mouse_y - math.sin(dir + 0.5) * 64, mouse_x + math.cos(dir + 0.5) * 64, mouse_y + math.sin(dir + 0.5) * 64)
+		
+		mx, my = to_worldspace(mouse_x, mouse_y)
+		
+		length = dist(rope_sprite.x, rope_sprite.y, mx, my)
+		
+		if length > ROPE_MAX_LENGTH then
+			love.graphics.line(mouse_x - math.cos(dir - 0.7) * 64, mouse_y - math.sin(dir - 0.7) * 64, mouse_x + math.cos(dir - 0.7) * 64, mouse_y + math.sin(dir - 0.7) * 64)
+			love.graphics.line(mouse_x - math.cos(dir + 0.7) * 64, mouse_y - math.sin(dir + 0.7) * 64, mouse_x + math.cos(dir + 0.7) * 64, mouse_y + math.sin(dir + 0.7) * 64)
+		else
+			love.graphics.circle("line", mouse_x, mouse_y, 24, 12)
+		end
 	end
 	
 	if debug_on then
@@ -211,6 +217,7 @@ function love.draw()
 		love.graphics.print("FPS: " .. fps, 20, 20)
 		love.graphics.print("CamX: " .. math.ceil(cam_x  * 10) / 10, 20, 40)
 		love.graphics.print("CamY: " .. math.ceil(cam_y  * 10) / 10, 120, 40)
+		love.graphics.print("Ropes: " .. rope_count, 20, 60)
 	end
 	
 end
@@ -233,116 +240,156 @@ function love.update(dt)
 	ticks = ticks + dt
 	
 	--scale_factor = math.sin(ticks) * 0.25 + 1.0
-	
-	cam_x = cam_x + cam_vx / scale_factor
-	cam_y = cam_y + cam_vy / scale_factor
-	
-	-- Identify if mouse is initiating scrolling
-	mouse_x = love.mouse.getX()
-	mouse_y = love.mouse.getY()
-	
-	-- Accelerate camera based on inputs
-	if press_up or mouse_y <= height * 0.1 then
-		cam_vy = cam_vy - 1
-	end
-	
-	if press_down or mouse_y >= height * 0.9 then
-		cam_vy = cam_vy + 1
-	end
-	
-	if press_left or mouse_x <= width * 0.1 then
-		cam_vx = cam_vx - 1
-	end
-	
-	if press_right or mouse_x >= width * 0.9 then
-		cam_vx = cam_vx + 1
-	end
-	
-	-- Zoom in / out based on inputs
-	if zoom_timer > ticks then
-		if zoom_in and scale_factor < 2 then
-			scale_factor = math.min(2, scale_factor * 1.01)
-			
-			cam_x = cam_x + (mouse_x - width / 2) * 0.04 / scale_factor
-			cam_y = cam_y + (mouse_y - height / 2) * 0.04 / scale_factor
+	for t = 0, dt, 1 / 60.0 do
+		cam_x = cam_x + cam_vx / scale_factor
+		cam_y = cam_y + cam_vy / scale_factor
+		
+		-- Identify if mouse is initiating scrolling
+		mouse_x = love.mouse.getX()
+		mouse_y = love.mouse.getY()
+		
+		-- Accelerate camera based on inputs
+		if press_up or mouse_y <= height * 0.1 then
+			cam_vy = cam_vy - 1
 		end
 		
-		if zoom_out and scale_factor > 0.25 then
-			
-			scale_factor = math.max(0.25, scale_factor * 0.99)
-			
-			cam_x = cam_x + (mouse_x - width / 2) * -0.02 / scale_factor
-			cam_y = cam_y + (mouse_y - height / 2) * -0.02 / scale_factor
-			
+		if press_down or mouse_y >= height * 0.9 then
+			cam_vy = cam_vy + 1
 		end
-	else
-		zoom_in = false
-		zoom_out = false
-	end
-	
-	-- Decelerate camera
-	if math.abs(cam_vx) > 0.2 then
-		cam_vx = cam_vx * 0.9
-	else
-		cam_vx = 0
-	end
-	
-	if math.abs(cam_vy) > 0.2 then
-		cam_vy = cam_vy * 0.9
-	else
-		cam_vy = 0
-	end
-	
-	--Sort sprite objects
-	sprites = mergeSort(sprites, sprite_compare)
-	
-	
-	-- Handle rope constraints
-	
-	rope = ropes
-	while rope do
-		-- If objects have drifted further than the length of the rope, apply appropriate forces to bring them in check
-		a_ax, a_ay, b_ax, b_ay = get_rope_forces(rope)
 		
-		rope.a.vx = rope.a.vx + a_ax
-		rope.a.vy = rope.a.vy + a_ay
+		if press_left or mouse_x <= width * 0.1 then
+			cam_vx = cam_vx - 1
+		end
 		
-		rope.b.vx = rope.b.vx + b_ax
-		rope.b.vy = rope.b.vy + b_ay
+		if press_right or mouse_x >= width * 0.9 then
+			cam_vx = cam_vx + 1
+		end
 		
-		rope = rope.next
-	end
-	
-	sprite = sprites
-	i = 1
-	
-	while sprite do
+		-- Zoom in / out based on inputs
+		if zoom_timer > ticks then
+			if zoom_in and scale_factor < 2 then
+				
+				cam_x = cam_x + width * scale_factor * 0.005
+				cam_y = cam_y + height * scale_factor * 0.005
+				
+				scale_factor = math.min(2, scale_factor * 1.01)
+				
+			end
+			
+			if zoom_out and scale_factor > 0.25 then
+				
+				cam_x = cam_x - width * scale_factor * 0.005
+				cam_y = cam_y - height * scale_factor * 0.005
+				
+				scale_factor = math.max(0.25, scale_factor * 0.99)
+				
+				
+			end
+		else
+			zoom_in = false
+			zoom_out = false
+		end
 		
-		-- Check for collisions with other raft sprites
-		if sprite.t == "Raft" then
-			other = sprites
-			while other do
-				if other.t == "Raft" and other ~= sprite then
-					col_dist = dist(sprite.x, sprite.y, other.x, other.y)
-					if col_dist < 128 then
-						dir = angle(sprite.x, sprite.y, other.x, other.y)
-						
-						sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
-						sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+		-- Decelerate camera
+		if math.abs(cam_vx) > 0.2 then
+			cam_vx = cam_vx * 0.9
+		else
+			cam_vx = 0
+		end
+		
+		if math.abs(cam_vy) > 0.2 then
+			cam_vy = cam_vy * 0.9
+		else
+			cam_vy = 0
+		end
+		
+		--Sort sprite objects
+		sprites = mergeSort(sprites, sprite_compare)
+		
+		
+		-- Handle rope constraints
+		
+		rope = ropes
+		rope_count = 0
+		while rope do
+			rope_count = rope_count + 1
+			-- If objects have drifted further than the length of the rope, apply appropriate forces to bring them in check
+			a_ax, a_ay, b_ax, b_ay = get_rope_forces(rope)
+			
+			rope.a.vx = rope.a.vx + a_ax
+			rope.a.vy = rope.a.vy + a_ay
+			
+			rope.b.vx = rope.b.vx + b_ax
+			rope.b.vy = rope.b.vy + b_ay
+			
+			rope = rope.next
+		end
+		
+		sprite = sprites
+		i = 1
+		
+		while sprite do
+			
+			-- Check for collisions with other raft sprites
+			if sprite.t == "Raft" then
+				other = sprites
+				last = nil
+				
+				while other do
+					update_last = true
+					if other.t == "Raft" and other ~= sprite then
+						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+						if col_dist < 128 then
+							dir = angle(sprite.x, sprite.y, other.x, other.y)
+							
+							sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
+							sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+						end
+					end
+					
+					-- Fish collisions
+					if other.t == "Fish" then
+						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+						if col_dist < 128 then
+							if sprite.child ~= nil and sprite.child.food > 0 then
+								sprite.child.food = math.min(100, sprite.child.food + FISH_FOOD_VAL)
+								
+								-- Remove the fish 
+								if  last ~= nil  then
+									last.next = other.next
+								else
+									sprites = other.next
+								end
+								
+								update_last = false
+							else
+								dir = angle(sprite.x, sprite.y, other.x, other.y)
+							
+								other.vx = other.vx - math.cos(dir) * (132 - col_dist) / 64.0
+								other.vy = other.vy - math.sin(dir) * (132 - col_dist) / 64.0
+							end
+							
+						end
+					end
+					
+					if other ~= nil then
+						if update_last then
+							last = other
+						end
+						other = other.next
 					end
 				end
-				other = other.next
 			end
+			
+			
+			-- Run sprite controller
+			if sprite.controller ~= nil then
+				sprite.controller(sprite, 1 / 60)
+			end
+			sprite.order = i
+			i = i + 1
+			sprite = sprite.next
 		end
-		
-		
-		-- Run sprite controller
-		if sprite.controller ~= nil then
-			sprite.controller(sprite, dt)
-		end
-		sprite.order = i
-		i = i + 1
-		sprite = sprite.next
 	end
 	
 	fps = math.ceil((1 / dt + fps * 29) / 3) / 10
@@ -482,7 +529,11 @@ function love.mousereleased(x, y, button)
 				sprite = sprite.next
 			end
 			
-			if target_sprite ~= nil then
+			mx, my = to_worldspace(x, y)
+		
+			length = dist(rope_sprite.x, rope_sprite.y, mx, my)
+			
+			if target_sprite ~= nil and rope_sprite ~= target_sprite and not rope_exists(ropes, target_sprite, rope_sprite) and length <= ROPE_MAX_LENGTH then
 				ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
 			end
 			

@@ -1,8 +1,10 @@
 require "util"
 
+FISH_MAX_VEL = 2
+
 function addFish(list)
 	list = {next = list,
-					t = "fish",
+					t = "Fish",
 					x = math.random(-4000, 4000),
 					y = math.random(-4000, 4000),
 					r = math.random() * math.pi * 2 - math.pi,
@@ -19,6 +21,12 @@ function addFish(list)
 							self.x = self.x + self.vx
 							self.y = self.y + self.vy
 							self.r = math.atan2(self.vy, self.vx) + math.sin(ticks * 3) * 0.1 - math.pi * 0.25
+							
+							-- Decelerate fish if going too fast
+							if dist(0, 0, self.vx, self.vy) > FISH_MAX_VEL then
+								self.vx = self.vx * 0.98
+								self.vy = self.vy * 0.98
+							end
 						end
 					}
 	return list

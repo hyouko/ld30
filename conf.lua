@@ -8,3 +8,5 @@ end
 debug_on = true
 
 rope_debug = false
+
+FISH_FOOD_VAL = 30.0
