@@ -821,15 +821,16 @@ function love.mousereleased(x, y, button)
 		if button == "l" then
 			
 			if rope_sprite ~= nil then
-				length = dist(selected_sprite.x, selected_sprite.y, mx, my)
+				length = dist(rope_sprite.x, rope_sprite.y, mx, my)
 				
 				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
 					ropes = release_ropes(ropes, selected_sprite)
 					
-					selected_sprite.effect = 0
-					selected_sprite = nil
-					rope_sprite = nil
+					
 				end
+				selected_sprite.effect = 0
+				selected_sprite = nil
+				rope_sprite = nil
 				
 			elseif selected_sprite ~= nil then
 				vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
@@ -850,11 +851,11 @@ function love.mousereleased(x, y, button)
 				
 				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
 					ropes = release_ropes(ropes, selected_sprite)
-					
-					selected_sprite.effect = 0
-					selected_sprite = nil
-					rope_sprite = nil
+										
 				end
+				selected_sprite.effect = 0
+				selected_sprite = nil
+				rope_sprite = nil
 				
 			elseif rope_sprite ~= nil then
 				sprite = sprites
