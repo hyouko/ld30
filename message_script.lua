@@ -32,6 +32,33 @@ levels["tutorial_1"] = {
 		end
 	end}
 
+levels["tutorial_2"] = {
+	message_stack = {"I've found a few of my friends... but they wound up in the middle of a mine field!",
+		"I'll have to ease my way in gently and wake them up with ropes using the [right mouse button].  Might be a good idea to let go afterward by pressing [both mouse buttons]... don't want to cause a chain reaction!",
+		"Goal: \n\n Wake up 3 other raft-folk!"},
+	setup_function = function()
+		setup_clean_level()
+		load_level("tutorial_2")
+		cam_x = 0
+		cam_y = 0
+		
+		awake_count, dead_count, fish_count, enemy_count = count_sprite_stats()
+				
+		gamestate = "Game"
+	end,
+	next_level = "tutorial_3",
+	win_loss_function = function()
+		awake_count, dead_count, fish_count, enemy_count = count_sprite_stats()
+		
+		if dead_count == 1 then
+			return "Loss"
+		elseif awake_count >= 4 then
+			return "Win"
+		else
+			return "Goal: Wake up "..(4 - awake_count).." more raft-folk"
+		end
+	end}
+
 levels["level_1"] = {
 	message_stack = {"I was born on a raft.  I grew up on a raft.  And after that last storm, I'll likely die on a raft.",
 	"Unless...",
