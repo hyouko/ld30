@@ -147,6 +147,48 @@ function love.draw()
 	drawWaterLayer(15, 0, math.pi * 1.5)
 	
 	if gamestate == "Title" then
+		
+		
+		
+		math.randomseed(13)
+		
+		for i = 0, 9 do
+			
+			x = math.random(0, width)
+			y = math.random(0, height)
+			
+			r = math.random() * math.pi * 2
+			
+			love.graphics.setColor(20, 20, 20, 120)
+			love.graphics.draw(raft[0],
+						x,
+						y + 10,
+						r, 1, 1, 64, 64)
+			
+			love.graphics.setColor(255, 255, 255)
+			
+			love.graphics.draw(raft[0],
+						x,
+						y,
+						r, 1, 1, 64, 64)
+					
+			if math.random() > 0.5 then
+				love.graphics.setColor(20, 20, 20, 120)
+				love.graphics.draw(raftguy[0],
+						x,
+						y - 6,
+						0, 0.8, 0.8, 64, 64)
+			
+				love.graphics.setColor(255, 255, 255)
+			
+				love.graphics.draw(raftguy[0],
+						x,
+						y - 16,
+						0, 0.8, 0.8, 64, 64)
+			end
+			
+		end
+		
 		love.graphics.setFont(font_huge)
 		
 		love.graphics.setColor(10, 50, 100, 120)
@@ -210,7 +252,7 @@ function love.draw()
 			fake_bold_printf("Press any key to start...", width / 3 + 12, height / 3 + 305, 300, 1)
 		end
 		
-	elseif gamestate == "Game" or gamestate == "Win" or gamestate == "Loss" then
+	elseif gamestate == "Game" or gamestate == "Win" or gamestate == "Loss" or gamestate == "Fin" then
 		
 		-- Render all ropes
 		rope = ropes
@@ -403,6 +445,24 @@ function love.draw()
 			love.graphics.setFont(font_big)
 			
 			fake_bold_print("Press any key to try again...", width / 3 - 30, height / 4, 1)
+		elseif gamestate == "Fin" then
+			love.graphics.setFont(font_huge)
+			
+			fade = val_clamp((ticks - fin_timer) * 8, 0, 100)
+			love.graphics.setColor(10, 50, 100, fade * 2)
+			love.graphics.rectangle("fill", 0, 0, width, height)
+			
+			love.graphics.setColor(10, 50, 100, 20 + fade)
+			love.graphics.print("Drift", width / 3 - 10, 60 + math.sin(ticks) * height / 64)
+			
+			love.graphics.setColor(30, 200, 255, 55 + fade * 2)
+			love.graphics.print("Drift", width / 3 - 10, 50 + math.sin(ticks) * height / 64)
+			
+			love.graphics.setFont(font_big)
+			fake_bold_print("~fin~", width / 2 - 20, height / 4, 1)
+			
+			fake_bold_print("Ludum Dare 30 - Connected Worlds",  width / 2 - 205, height / 4 + 80, 1)
+			
 		end
 		
 	end
@@ -668,6 +728,8 @@ function love.update(dt)
 				gamestate = "Win"
 			elseif level_state == "Loss" then
 				gamestate = "Loss"
+			elseif level_state == "Fin" then
+				gamestate = "Fin"
 			end
 			
 			
@@ -700,10 +762,12 @@ function love.keypressed(key)
 			zoom_in = false
 			zoom_out = true
 			zoom_timer = ticks + 10
-		elseif key == "2" then
-			screenshot = love.graphics.newScreenshot()
-			screenshot:encode('drift_screen.bmp')
 		end
+	end
+	
+	if key == "2" then
+		screenshot = love.graphics.newScreenshot()
+		screenshot:encode('drift_screen.bmp')
 	end
 end
 
@@ -737,6 +801,13 @@ function love.keyreleased(key)
 			zoom_timer = ticks - 0.5
 		elseif key == "escape" then
 			love.event.quit()
+		elseif key == "pageup" and not debug_on then
+			debug_on = true
+		elseif key == "." and debug_on then
+			gamestate = "Win"
+		elseif key == "/" and debug_on then
+			gamestate = "Fin"
+			fin_timer = ticks
 		end
 	elseif gamestate == "Win" then
 		play_level(levels[current_level].next_level)

@@ -298,16 +298,20 @@ function harm_raftguys(awake, amount)
 	end
 end
 
-function count_sprite_stats()
+function count_sprite_stats(x1, y1, x2, y2)
 	awake_count = 0
 	dead_count = 0
 	fish_count = 0
 	enemy_count = 0
+	area_count = 0
 	
 	sprite = sprites
 	while sprite do
 		if sprite.t == "Raftguy" and sprite.state == "Active" then
 			awake_count = awake_count + 1
+			if x1 ~= nil and within_box(sprite.x, sprite.y, x1, y1, x2 - x1, y2 - y1) then
+				area_count = area_count + 1
+			end
 		elseif sprite.t == "Raftguy" and sprite.state == "Dead" then
 			dead_count = dead_count + 1
 		elseif sprite.t == "Fish" then
@@ -318,5 +322,5 @@ function count_sprite_stats()
 		sprite = sprite.next
 	end
 	
-	return awake_count, dead_count, fish_count, enemy_count
+	return awake_count, dead_count, fish_count, enemy_count, area_count
 end

@@ -52,6 +52,14 @@ function addBoat(list, x, y)
 								self.effect = 2
 							end
 							
+							self.vx = self.vx * BOAT_DECEL
+							self.vy = self.vy * BOAT_DECEL
+							
+							-- Decelerate boat
+							while dist(0, 0, self.vx, self.vy) > BOAT_MAX_VEL do
+								self.vx = self.vx * BOAT_DECEL
+								self.vy = self.vy * BOAT_DECEL
+							end
 							
 							-- Update position based on velocity
 							self.x = self.x + self.vx
@@ -70,14 +78,7 @@ function addBoat(list, x, y)
 								self.wake_timer = ticks + WAKE_DELAY
 							end
 							
-							self.vx = self.vx * BOAT_DECEL
-							self.vy = self.vy * BOAT_DECEL
 							
-							-- Decelerate boat
-							while dist(0, 0, self.vx, self.vy) > BOAT_MAX_VEL do
-								self.vx = self.vx * BOAT_DECEL
-								self.vy = self.vy * BOAT_DECEL
-							end
 							
 							-- Destroy boat and turret if health is 0
 							if self.health <= 0 then
