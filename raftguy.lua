@@ -32,9 +32,9 @@ function addRaftguy(list, parent)
 									self.food = 0
 								end
 								
-								if self.food == 0 then
+								if self.food <= 0 then
 									self.img = raftguy[1]
-									state = "Dead"
+									self.state = "Dead"
 								end
 							end}
 	parent.child = list

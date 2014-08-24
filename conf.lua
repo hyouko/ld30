@@ -9,7 +9,7 @@ scale_factor = 0.5
 
 
 -- Debug toggles
-debug_on = true
+debug_on = false
 rope_debug = false
 boat_debug = false
 

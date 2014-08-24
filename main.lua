@@ -46,7 +46,6 @@ function love.load()
 	fps = 60
 end
 
-
 function play_level(level)
 	current_level = level
 	gamestate = "Message"
@@ -66,6 +65,7 @@ function setup_clean_level()
 end
 
 function setup_sandbox()
+	debug_on = true
 	
 	-- Spawn some test raft sprites
 	for i = 1, 200 do
@@ -130,7 +130,7 @@ function loadImages()
 	
 	parchment = love.graphics.newImage("gfx/parchment.png")
 	
-	font_small = love.graphics.newFont('gfx/driftfont_2.ttf', 24)
+	font_small = love.graphics.newFont('gfx/driftfont_2.ttf', 26)
 	font_big = love.graphics.newFont('gfx/driftfont_2.ttf', 34)
 	font_huge = love.graphics.newFont('gfx/driftfont_2.ttf', 200)
 	
@@ -199,16 +199,18 @@ function love.draw()
 		love.graphics.setFont(font_small)
 		love.graphics.setColor(10, 50, 100)
 		
+		fake_bold_print(levels[current_level].title, width / 3 + 12, height / 3 - 10, 2)
+		
 		fake_bold_printf(message_stack[current_message], width / 3 + 12, height / 3 + 20, 300, 1)
 		
 		love.graphics.setColor(10, 100, 50)
 		if current_message < table.getn(message_stack) then
 			fake_bold_printf("Press any key to read more...", width / 3 + 12, height / 3 + 305, 300, 1)
 		else
-			fake_bold_printf("Press any key to start level...", width / 3 + 12, height / 3 + 305, 300, 1)
+			fake_bold_printf("Press any key to start...", width / 3 + 12, height / 3 + 305, 300, 1)
 		end
 		
-	elseif gamestate == "Game" then
+	elseif gamestate == "Game" or gamestate == "Win" or gamestate == "Loss" then
 		
 		-- Render all ropes
 		rope = ropes
@@ -371,17 +373,40 @@ function love.draw()
 			love.graphics.print("Ropes: " .. rope_count, 20, 60)
 		end
 		
-		if level_state ~= nil then
+		if level_state ~= nil and gamestate == "Game" then
 			love.graphics.setColor(30, 200, 255)
 			love.graphics.setFont(font_big)
 			fake_bold_print(level_state, 30, height - 40, 1)
 		end
 		
+		if gamestate == "Win" then
+			love.graphics.setFont(font_huge)
+		
+			love.graphics.setColor(10, 50, 100, 120)
+			love.graphics.print("Success!", width / 3 - 100, 60 + math.sin(ticks) * height / 64)
+		
+			love.graphics.setColor(30, 200, 255)
+			love.graphics.print("Success!", width / 3 - 100, 50 + math.sin(ticks) * height / 64)
+			
+			love.graphics.setFont(font_big)
+			
+			fake_bold_print("Press any key to continue to the next level...", width / 3 - 110, height / 4, 1)
+		elseif gamestate == "Loss" then
+			love.graphics.setFont(font_huge)
+		
+			love.graphics.setColor(10, 50, 100, 120)
+			love.graphics.print("Failure...", width / 3 - 90, 60 + math.sin(ticks) * height / 64)
+		
+			love.graphics.setColor(30, 200, 255)
+			love.graphics.print("Failure...", width / 3 - 90, 50 + math.sin(ticks) * height / 64)
+			
+			love.graphics.setFont(font_big)
+			
+			fake_bold_print("Press any key to try again...", width / 3 - 30, height / 4, 1)
+		end
+		
 	end
 	
-	
-	--print (love.timer.getTime() - t_test)
-
 end
 
 -- Draw an animating layer of water
@@ -617,7 +642,6 @@ function love.update(dt)
 							end
 						end
 						
-						
 						other = other.next
 						
 					end
@@ -641,9 +665,9 @@ function love.update(dt)
 			end
 			
 			if level_state == "Win" then
-				play_level(levels[current_level].next_level)
+				gamestate = "Win"
 			elseif level_state == "Loss" then
-				play_level(current_level)
+				gamestate = "Loss"
 			end
 			
 			
@@ -714,6 +738,10 @@ function love.keyreleased(key)
 		elseif key == "escape" then
 			love.event.quit()
 		end
+	elseif gamestate == "Win" then
+		play_level(levels[current_level].next_level)
+	elseif gamestate == "Loss" then
+		play_level(current_level)
 	end
 	
 end
@@ -799,9 +827,7 @@ function love.mousereleased(x, y, button)
 		-- 1st real level
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 70, 300, 50) then
 			-- Set first real level here!
-			
 			play_level("level_1")
-			
 		end
 		
 		-- Sandbox / test mode
@@ -902,6 +928,10 @@ function love.mousereleased(x, y, button)
 		elseif button == "wu" then
 			zoom_in = false
 		end
+	elseif gamestate == "Win" then
+		play_level(levels[current_level].next_level)
+	elseif gamestate == "Loss" then
+		play_level(current_level)
 	end
 end
 

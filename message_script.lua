@@ -3,6 +3,7 @@ init_stats = {}
 levels = {}
 
 levels["tutorial_1"] = {
+	title = "Breaking and Entering",
 	message_stack = {"Ugh.  I'm lucky to be alive... but I won't be for long if I don't get some food in me.",
 		"There's a fish pen just over there.  Drag me over with the [left mouse button].  I have just enough strength left to haul away the rafts on the boundary with the [right mouse button.]",
 		"Goal: \n\n Grab a few fish from the fish pen!"},
@@ -33,8 +34,9 @@ levels["tutorial_1"] = {
 	end}
 
 levels["tutorial_2"] = {
-	message_stack = {"I've found a few of my friends... but they wound up in the middle of a mine field!",
-		"I'll have to ease my way in gently and wake them up with ropes using the [right mouse button].  Might be a good idea to let go afterward by pressing [both mouse buttons]... don't want to cause a chain reaction!",
+	title = "Tiptoe Through the Minefield",
+	message_stack = {"I've found a few of my friends... but they wound up in the middle of a minefield!",
+		"I'll have to ease my way in gently and wake them up with ropes using the [right mouse button].  Might be a good idea to let go afterward by pressing [both mouse buttons]... I don't want to cause a chain reaction!",
 		"Goal: \n\n Wake up 3 other raft-folk!"},
 	setup_function = function()
 		setup_clean_level()
@@ -59,7 +61,40 @@ levels["tutorial_2"] = {
 		end
 	end}
 
+levels["tutorial_3"] = {
+	title = "Light up the Night",
+	message_stack = {"Jackpot!  There are some gunboats up ahead, but they're guarding a real prize - a real, working autogun!",
+		"I should find a way around them, grab the autogun with the [right mouse button], and wreak some havoc.",
+		"Goal: \n\n Take out the gunboats!"},
+	setup_function = function()
+		setup_clean_level()
+		load_level("tutorial_3")
+		cam_x = 0
+		cam_y = 0
+		
+		BOAT_MIN_TARGET_RANGE = 300
+		BOAT_MAX_TARGET_RANGE = 700
+		
+		awake_count, dead_count, fish_count, enemy_count = count_sprite_stats()
+				
+		gamestate = "Game"
+	end,
+	next_level = "level_1",
+	win_loss_function = function()
+		awake_count, dead_count, fish_count, enemy_count = count_sprite_stats()
+		
+		if awake_count == 0 then
+			return "Loss"
+		elseif enemy_count == 0 then
+			return "Win"
+		else
+			return "Goal: Destroy "..enemy_count.." more gunboats"
+		end
+	end}
+
+
 levels["level_1"] = {
+	title = "Prison break!",
 	message_stack = {"I was born on a raft.  I grew up on a raft.  And after that last storm, I'll likely die on a raft.",
 	"Unless...",
 	"Unless I can find the other members of my flotilla and tie up with them.  Together again, we might stand a chance...",
