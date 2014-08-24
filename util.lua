@@ -283,3 +283,40 @@ function load_level(level_name)
 		y = y + 1
 	end
 end
+
+function harm_raftguys(awake, amount)
+	sprite = sprites
+	while sprite do
+		if sprite.t == "Raftguy" then
+			if awake and sprite.state == "Active" then
+				sprite.food = math.max(0, sprite.food - amount)
+			elseif awake == false and sprite.state == "Sleep" then
+				sprite.food = math.max(0, sprite.food - amount)
+			end
+		end
+		sprite = sprite.next
+	end
+end
+
+function count_sprite_stats()
+	awake_count = 0
+	dead_count = 0
+	fish_count = 0
+	enemy_count = 0
+	
+	sprite = sprites
+	while sprite do
+		if sprite.t == "Raftguy" and sprite.state == "Active" then
+			awake_count = awake_count + 1
+		elseif sprite.t == "Raftguy" and sprite.state == "Dead" then
+			dead_count = dead_count + 1
+		elseif sprite.t == "Fish" then
+			fish_count = fish_count + 1
+		elseif sprite.t == "Boat" then
+			enemy_count = enemy_count + 1
+		end
+		sprite = sprite.next
+	end
+	
+	return awake_count, dead_count, fish_count, enemy_count
+end

@@ -47,6 +47,13 @@ function love.load()
 end
 
 
+function play_level(level)
+	current_level = level
+	gamestate = "Message"
+	message_stack = levels[current_level].message_stack
+	current_message = 1
+end
+
 function setup_clean_level()
 	set_default_constants()
 	
@@ -362,6 +369,13 @@ function love.draw()
 			love.graphics.print("CamY: " .. math.ceil(cam_y  * 10) / 10, 160, 40)
 			love.graphics.print("Ropes: " .. rope_count, 20, 60)
 		end
+		
+		if level_state ~= nil then
+			love.graphics.setColor(30, 200, 255)
+			love.graphics.setFont(font_big)
+			fake_bold_print(level_state, 30, height - 40, 1)
+		end
+		
 	end
 	
 	
@@ -618,6 +632,16 @@ function love.update(dt)
 			end
 			
 			sprites = cleanup_sprites(sprites)
+			
+			level_state = levels[current_level].win_loss_function()
+			
+			if level_state == "Win" then
+				play_level(levels[current_level].next_level)
+			elseif level_state == "Loss" then
+				play_level(current_level)
+			end
+			
+			
 		end
 	end
 	
@@ -628,11 +652,7 @@ function love.keypressed(key)
 	if gamestate == "Title" then
 		
 	elseif gamestate == "Message" then
-		if current_message < table.getn(message_stack) then
-			current_message = current_message + 1
-		else
-			post_message[message_stack]()
-		end
+		
 	elseif gamestate == "Game" then
 		
 		if key == "s" or key == "down" then
@@ -665,7 +685,11 @@ function love.keyreleased(key)
 			love.event.quit()
 		end
 	elseif gamestate == "Message" then
-		
+		if current_message < table.getn(message_stack) then
+			current_message = current_message + 1
+		else
+			levels[current_level].setup_function()
+		end
 	elseif gamestate == "Game" then
 	
 		if key == "s" or key == "down" then
@@ -764,18 +788,14 @@ function love.mousereleased(x, y, button)
 		-- Tutorial
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 20, 300, 50) then
 			-- TODO: Set tutorial mode here!
-			gamestate = "Message"
-			message_stack = intro_stack
-			current_message = 1
+			play_level("tutorial_1")
 		end
 		
 		-- 1st real level
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 70, 300, 50) then
 			-- Set first real level here!
 			
-			gamestate = "Message"
-			message_stack = lvl_1_stack
-			current_message = 1
+			play_level("level_1")
 			
 		end
 		
@@ -791,7 +811,11 @@ function love.mousereleased(x, y, button)
 			love.event.quit()
 		end
 	elseif gamestate == "Message" then
-		
+		if current_message < table.getn(message_stack) then
+			current_message = current_message + 1
+		else
+			levels[current_level].setup_function()
+		end
 	elseif gamestate == "Game" then
 	
 		if button == "l" then
