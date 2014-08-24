@@ -40,6 +40,15 @@ function dot_prod(x1, y1, x2, y2)
 	return x1 * x2 + y1 * y2
 end
 
+function fake_bold_print(text, x, y, rpt)
+	
+	for i = 0, rpt do
+		for ii = 0, rpt do
+			love.graphics.print(text, x + i, y + ii)
+		end
+	end
+end
+
 -- merge sort, for z-ordering
 function mergeSort(list, compare_func)
 	insize = 1
@@ -170,6 +179,10 @@ function is_visible(sprite)
 	sx, sy = to_screenspace(sprite.x, sprite.y)
 	
 	return (sx >= -128 * scale_factor and sx <= (width + 128 * scale_factor) and sy >= -128 * scale_factor and sy <= (height + 128 * scale_factor))
+end
+
+function within_box(x1, y1, x2, y2, w, h)
+	return (x1 >= x2 and x1 <= x2 + w and y1 >= y2 and y1 <= y2 + h)
 end
 
 function cleanup_sprites(list)
