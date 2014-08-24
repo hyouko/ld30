@@ -1,7 +1,5 @@
 require "util"
 
-
-
 function addRope(list, a, b, length)
 	list = {next = list,
 					a = a,

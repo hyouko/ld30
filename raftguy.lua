@@ -1,7 +1,5 @@
 require "util"
 
-
-
 function addRaftguy(list, parent)
 	list = {next = list,
 						t = "Raftguy",

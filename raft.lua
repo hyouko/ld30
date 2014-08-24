@@ -1,10 +1,10 @@
 require "util"
 
-function addRaft(list)
+function addRaft(list, x, y)
 	list = {next = list,
 					t = "Raft",
-					x = math.random(-4000, 4000),
-					y = math.random(-4000, 4000),
+					x = x or math.random(-4000, 4000),
+					y = y or math.random(-4000, 4000),
 					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
 					s = 1,
 					img = raft[0],

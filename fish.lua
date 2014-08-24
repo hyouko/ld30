@@ -1,10 +1,10 @@
 require "util"
 
-function addFish(list)
+function addFish(list, x, y, vx, vy)
 	list = {next = list,
 					t = "Fish",
-					x = math.random(-4000, 4000),
-					y = math.random(-4000, 4000),
+					x = x or math.random(-4000, 4000),
+					y = y or math.random(-4000, 4000),
 					r = math.random() * math.pi * 2 - math.pi,
 					s = 1,
 					img = fish[0],
@@ -12,8 +12,8 @@ function addFish(list)
 					shadow = false,
 					effect = 0,
 					order = i,
-					vx = math.random() * 2 - 1,
-					vy = math.random() * 2 - 1,
+					vx = vx or math.random() * 2 - 1,
+					vy = vy or math.random() * 2 - 1,
 					cleanup = false,
 					controller =
 						function(self, dt)

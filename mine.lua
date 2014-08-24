@@ -1,9 +1,9 @@
-function addMine(list)
+function addMine(list, x, y)
 	list = {next = list,
 					t = "Mine",
-					x = math.random(-4000, 4000),
-					y = math.random(-4000, 4000),
-					r = math.random() * math.pi * 0.5 - math.pi * 0.25,
+					x = x or math.random(-4000, 4000),
+					y = y or math.random(-4000, 4000),
+					r = 0,
 					s = 1,
 					img = mine,
 					layer = 1,
