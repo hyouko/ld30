@@ -79,7 +79,7 @@ function setup_sandbox()
 	end
 	
 	-- Spawn some test fish
-	for i = 1, 500 do
+	for i = 1, 200 do
 		sprites = addFish(sprites)
 	end
 	
@@ -88,6 +88,7 @@ function setup_sandbox()
 		sprites = addBoat(sprites)
 	end
 	
+	-- And some mines
 	for i = 1, 20 do
 		sprites = addMine(sprites)
 	end
@@ -633,7 +634,11 @@ function love.update(dt)
 			
 			sprites = cleanup_sprites(sprites)
 			
-			level_state = levels[current_level].win_loss_function()
+			if current_level ~= nil then
+				level_state = levels[current_level].win_loss_function()
+			else
+				level_state = "Sandbox mode!"
+			end
 			
 			if level_state == "Win" then
 				play_level(levels[current_level].next_level)
@@ -826,9 +831,9 @@ function love.mousereleased(x, y, button)
 				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
 					ropes = release_ropes(ropes, selected_sprite)
 					
-					
 				end
-				selected_sprite.effect = 0
+				
+				rope_sprite.effect = 0
 				selected_sprite = nil
 				rope_sprite = nil
 				
