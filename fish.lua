@@ -1,7 +1,5 @@
 require "util"
 
-FISH_MAX_VEL = 2
-
 function addFish(list)
 	list = {next = list,
 					t = "Fish",

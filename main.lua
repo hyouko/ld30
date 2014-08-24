@@ -44,7 +44,7 @@ function love.load()
 		
 		if math.random() < 0.2 then
 			sprites = addRaftguy(sprites, sprites)
-		elseif math.random() < 0.2 then
+		elseif math.random() < 0.1 then
 			sprites = addFriendlyTurret(sprites, sprites)
 		end
 	end
@@ -96,6 +96,7 @@ function loadImages()
 	
 	turret = love.graphics.newImage("gfx/turret.png")
 	bullet = love.graphics.newImage("gfx/bullet.png")
+	wake = love.graphics.newImage("gfx/wake_02.png")
 end
 
 function love.draw()
@@ -165,7 +166,12 @@ function love.draw()
 					sx,
 					sy,
 					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
-				
+			elseif sprite.effect == 3 then
+				love.graphics.setColor(255, 255, 255, math.max((sprite.life_timer - ticks) / WAKE_LIFESPAN * 255, 0))
+				love.graphics.draw(sprite.img,
+					sx,
+					sy,
+					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			else
 				love.graphics.setColor(255, 255, 255)
 				love.graphics.draw(sprite.img,

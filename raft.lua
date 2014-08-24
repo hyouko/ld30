@@ -1,11 +1,5 @@
 require "util"
 
-RAFT_DECEL = 0.98
-RAFT_TURN = 0.9
-RAFT_TURN_THRESHOLD = 1.5
-RAFT_MAX_VEL = 8
-RAFT_FIRE_DELAY = 3
-
 function addRaft(list)
 	list = {next = list,
 					t = "Raft",

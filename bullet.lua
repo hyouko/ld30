@@ -1,7 +1,3 @@
-BULLET_LIFESPAN = 0.5
-BULLET_VEL = 20
-BULLET_DAMAGE = 10
-BULLET_IMPACT = 4
 
 function addBullet(list, parent, state)
 	list = {next = list,
@@ -25,7 +21,9 @@ function addBullet(list, parent, state)
 							self.x = self.x + self.vx
 							self.y = self.y + self.vy
 							
-							self.cleanup = self.life_timer < ticks
+							if not self.cleanup then
+								self.cleanup = self.life_timer < ticks
+							end
 								
 						end
 					}

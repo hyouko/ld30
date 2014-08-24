@@ -1,7 +1,6 @@
 require "util"
 
-FOOD_LOSS_RATE = 0.25
-FOOD_LOSS_MOVE_RATE = 0.5
+
 
 function addRaftguy(list, parent)
 	list = {next = list,

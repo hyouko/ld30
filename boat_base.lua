@@ -1,15 +1,6 @@
 require "util"
 require "bullet"
 
-BOAT_DECEL = 0.98
-BOAT_ACCEL = 0.05
-BOAT_TURN = 0.9
-BOAT_TURN_THRESHOLD = 1.5
-BOAT_MAX_VEL = 8
-BOAT_MIN_TARGET_RANGE = 300
-BOAT_MAX_TARGET_RANGE = 4000
-BOAT_FIRE_DELAY = 2
-
 function addBoat(list)
 	list = {next = list,
 					t = "Boat",
@@ -27,6 +18,7 @@ function addBoat(list)
 					child = nil,
 					target = nil,
 					target_timer = ticks,
+					wake_timer = ticks,
 					health = 50,
 					cleanup = false,
 					controller =
@@ -70,6 +62,12 @@ function addBoat(list)
 								newdir = math.atan2(self.vy, self.vx)
 								self.r = angle_avg(self.r, newdir, BOAT_TURN)	
 								
+							end
+							
+							if SHOW_WAKE and self.wake_timer < ticks then
+								sprites = addWake(sprites, self)
+								
+								self.wake_timer = ticks + WAKE_DELAY
 							end
 							
 							self.vx = self.vx * BOAT_DECEL
@@ -117,11 +115,42 @@ function addTurret(list, parent)
 									self.fire_timer = ticks + BOAT_FIRE_DELAY
 								end
 								
+								
+							
 								if self.parent.target ~= nil then
 									self.r = angle_avg(self.r, sprite_angle(self.parent.target, self.parent), 0.9)
 								end
 								
 							end}
 	parent.child = list
+	return list
+end
+
+function addWake(list, parent)
+	list = {next = list,
+					t = "Wake",
+					x = parent.x,
+					y = parent.y,
+					r = angle(parent.vx, parent.vy, 0, 0),
+					s = 1,
+					img = wake,
+					layer = 0,
+					shadow = false,
+					effect = 3,
+					order = i,
+					vx = -parent.vx,
+					vy = -parent.vy,
+					cleanup = false,
+					life_timer = ticks + WAKE_LIFESPAN,
+					controller =
+						function(self, dt)
+							self.x = self.x + self.vx
+							self.y = self.y + self.vy
+							
+							if self.life_timer < ticks then
+								self.cleanup = true
+							end
+						end
+					}
 	return list
 end

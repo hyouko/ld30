@@ -1,6 +1,6 @@
 require "util"
 
-ROPE_MAX_LENGTH = 400
+
 
 function addRope(list, a, b, length)
 	list = {next = list,
