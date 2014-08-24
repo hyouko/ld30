@@ -6,8 +6,10 @@ require "raftguy"
 require "fish"
 require "boat_base"
 require "mine"
-
 require "rope"
+
+-- Scripting for levels, etc.
+require "message_script"
 
 function love.load()
 	
@@ -121,8 +123,6 @@ function loadImages()
 end
 
 function love.draw()
-	
-	--t_test = love.timer.getTime()
 
 	love.graphics.setColor(10, 100, 210)
 	love.graphics.rectangle('fill', 0, 0, width, height)
@@ -172,6 +172,26 @@ function love.draw()
 		fake_bold_print("(c) Chris Drouin, 2014", width / 3 + 12, height / 3 + 260,  1)
 		
 	elseif gamestate == "Message" then
+		
+		if current_message < table.getn(message_stack) then
+			love.graphics.setColor(200, 200, 200)
+			love.graphics.draw(parchment, width / 3 - 30, height / 3 - 90, 0.1)
+		end
+		
+		love.graphics.setColor(255, 255, 255)
+		love.graphics.draw(parchment, width / 3 - 80, height / 3 - 70)
+		
+		love.graphics.setFont(font_small)
+		love.graphics.setColor(10, 50, 100)
+		
+		fake_bold_printf(message_stack[current_message], width / 3 + 12, height / 3 + 20, 300, 1)
+		
+		love.graphics.setColor(10, 100, 50)
+		if current_message < table.getn(message_stack) then
+			fake_bold_printf("Press any key to read more...", width / 3 + 12, height / 3 + 305, 300, 1)
+		else
+			fake_bold_printf("Press any key to start level...", width / 3 + 12, height / 3 + 305, 300, 1)
+		end
 		
 	elseif gamestate == "Game" then
 		
@@ -273,7 +293,14 @@ function love.draw()
 							124 * (food_cost / 100.0) * scale_factor,
 							12 * scale_factor)
 					end
-								
+						
+				end
+				
+				if sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state == "Active" then
+					love.graphics.setColor(10, 255, 10, 80)
+					love.graphics.setLineWidth(2)
+					love.graphics.circle("line", sx, sy, 80 * scale_factor, 40)
+						
 				end
 			end
 					
@@ -587,7 +614,11 @@ function love.keypressed(key)
 	if gamestate == "Title" then
 		
 	elseif gamestate == "Message" then
-		
+		if current_message < table.getn(message_stack) then
+			current_message = current_message + 1
+		else
+			post_message[message_stack]()
+		end
 	elseif gamestate == "Game" then
 		
 		if key == "s" or key == "down" then
@@ -719,6 +750,9 @@ function love.mousereleased(x, y, button)
 		-- Tutorial
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 20, 300, 50) then
 			-- TODO: Set tutorial mode here!
+			gamestate = "Message"
+			message_stack = intro_stack
+			current_message = 1
 		end
 		
 		-- 1st real level
@@ -741,7 +775,19 @@ function love.mousereleased(x, y, button)
 	elseif gamestate == "Game" then
 	
 		if button == "l" then
-			if selected_sprite ~= nil then
+			
+			if rope_sprite ~= nil then
+				length = dist(selected_sprite.x, selected_sprite.y, mx, my)
+				
+				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
+					ropes = release_ropes(ropes, selected_sprite)
+					
+					selected_sprite.effect = 0
+					selected_sprite = nil
+					rope_sprite = nil
+				end
+				
+			elseif selected_sprite ~= nil then
 				vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
 				dir = -angle(selection_startx, selection_starty, x, y)
 				
@@ -755,7 +801,18 @@ function love.mousereleased(x, y, button)
 				selected_sprite = nil
 			end
 		elseif button == "r" then
-			if rope_sprite ~= nil then
+			if selected_sprite ~= nil then
+				length = dist(selected_sprite.x, selected_sprite.y, mx, my)
+				
+				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
+					ropes = release_ropes(ropes, selected_sprite)
+					
+					selected_sprite.effect = 0
+					selected_sprite = nil
+					rope_sprite = nil
+				end
+				
+			elseif rope_sprite ~= nil then
 				sprite = sprites
 				target_sprite = nil
 				while sprite do

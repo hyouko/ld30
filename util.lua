@@ -49,6 +49,15 @@ function fake_bold_print(text, x, y, rpt)
 	end
 end
 
+function fake_bold_printf(text, x, y, limit, rpt)
+	
+	for i = 0, rpt do
+		for ii = 0, rpt do
+			love.graphics.printf(text, x + i, y + ii, limit)
+		end
+	end
+end
+
 -- merge sort, for z-ordering
 function mergeSort(list, compare_func)
 	insize = 1
@@ -183,6 +192,27 @@ end
 
 function within_box(x1, y1, x2, y2, w, h)
 	return (x1 >= x2 and x1 <= x2 + w and y1 >= y2 and y1 <= y2 + h)
+end
+
+function release_ropes(list, sprite)
+	rope = list
+	last = nil
+	
+	while rope do
+		if rope.a == sprite or rope.b == sprite then
+			if last == nil then
+				list = rope.next
+			else
+				last.next = rope.next
+			end
+		else
+			last = rope
+		end
+		
+		rope = rope.next
+	end
+	
+	return list
 end
 
 function cleanup_sprites(list)
