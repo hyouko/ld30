@@ -166,6 +166,12 @@ function get_random_nearby_target(boat)
 	return target
 end
 
+function is_visible(sprite)
+	sx, sy = to_screenspace(sprite.x, sprite.y)
+	
+	return (sx >= -128 * scale_factor and sx <= (width + 128 * scale_factor) and sy >= -128 * scale_factor and sy <= (height + 128 * scale_factor))
+end
+
 function cleanup_sprites(list)
 	sprite = list
 	last = nil

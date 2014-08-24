@@ -41,8 +41,11 @@ function love.load()
 	for i = 1, 200 do
 		sprites = addRaft(sprites)
 		
+		
 		if math.random() < 0.2 then
 			sprites = addRaftguy(sprites, sprites)
+		elseif math.random() < 0.2 then
+			sprites = addFriendlyTurret(sprites, sprites)
 		end
 	end
 	
@@ -136,69 +139,71 @@ function love.draw()
 	-- Render all sprites
 	sprite = sprites
 	while sprite do
-		sx, sy = to_screenspace(sprite.x, sprite.y)
-		-- If applicable, render sprite shadows
-		if sprite.shadow then
-			love.graphics.setColor(20, 20, 20, 120)
-			love.graphics.draw(sprite.img,
-				sx,
-				sy + 10 * scale_factor,
-				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
-		end
 		
-		-- Apply various and sundry special effects
-		if sprite.effect == 1 then
-			love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
-			love.graphics.draw(sprite.img,
-				sx,
-				sy,
-				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
-			
-		elseif sprite.effect == 2 then
-			love.graphics.setColor(255, math.sin(ticks) * 64 + 191, math.sin(ticks) * 64 + 191)
-			love.graphics.draw(sprite.img,
-				sx,
-				sy,
-				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
-			
-		else
-			love.graphics.setColor(255, 255, 255)
-			love.graphics.draw(sprite.img,
-				sx,
-				sy,
-				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
-		end
-		
-		if sprite.t == "Boat" then
-			if boat_debug and sprite.target ~= nil then
-				
-				love.graphics.print(sprite_dist(sprite, sprite.target), sx, sy)
+		if is_visible(sprite) then	
+			sx, sy = to_screenspace(sprite.x, sprite.y)
+			-- If applicable, render sprite shadows
+			if sprite.shadow then
+				love.graphics.setColor(20, 20, 20, 120)
+				love.graphics.draw(sprite.img,
+					sx,
+					sy + 10 * scale_factor,
+					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			end
 			
-		end
-		
-		if sprite.t == "Raftguy" then
-			-- Draw food bar for the raft guy
-						
-			love.graphics.setColor(20, 40, 60)
-			love.graphics.rectangle("fill", sx - 64 * scale_factor, sy - 64 * scale_factor, 128 * scale_factor, 16 * scale_factor)
-			
-			love.graphics.setColor(255 * (1 - sprite.food / 100), 255 * (sprite.food / 100), 10)
-			love.graphics.rectangle("fill", sx - 62 * scale_factor, sy - 62 * scale_factor, 124 * (sprite.food / 100) * scale_factor, 12 * scale_factor)
-			
-			-- Show the anticipated cost of moving
-			if sprite.parent == selected_sprite then
-				food_cost = FOOD_LOSS_MOVE_RATE * math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, mouse_x, mouse_y) / scale_factor / 64.0)
+			-- Apply various and sundry special effects
+			if sprite.effect == 1 then
+				love.graphics.setColor(math.sin(ticks) * 64 + 191, 255, math.sin(ticks) * 64 + 191)
+				love.graphics.draw(sprite.img,
+					sx,
+					sy,
+					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 				
-				love.graphics.setColor(255, 10, 10)
-				love.graphics.rectangle("fill",
-					sx - 62 * scale_factor + 124 * ((sprite.food - food_cost) / 100) * scale_factor,
-					sy - 62 * scale_factor,
-					124 * (food_cost / 100.0) * scale_factor,
-					12 * scale_factor)
+			elseif sprite.effect == 2 then
+				love.graphics.setColor(255, math.sin(ticks) * 64 + 191, math.sin(ticks) * 64 + 191)
+				love.graphics.draw(sprite.img,
+					sx,
+					sy,
+					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
+				
+			else
+				love.graphics.setColor(255, 255, 255)
+				love.graphics.draw(sprite.img,
+					sx,
+					sy,
+					sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 			end
 			
+			if sprite.t == "Boat" then
+				if boat_debug and sprite.target ~= nil then
+					
+					love.graphics.print(sprite_dist(sprite, sprite.target), sx, sy)
+				end
 				
+			end
+			
+			if sprite.t == "Raftguy" then
+				-- Draw food bar for the raft guy
+							
+				love.graphics.setColor(20, 40, 60)
+				love.graphics.rectangle("fill", sx - 64 * scale_factor, sy - 64 * scale_factor, 128 * scale_factor, 16 * scale_factor)
+				
+				love.graphics.setColor(255 * (1 - sprite.food / 100), 255 * (sprite.food / 100), 10)
+				love.graphics.rectangle("fill", sx - 62 * scale_factor, sy - 62 * scale_factor, 124 * (sprite.food / 100) * scale_factor, 12 * scale_factor)
+				
+				-- Show the anticipated cost of moving
+				if sprite.parent == selected_sprite then
+					food_cost = FOOD_LOSS_MOVE_RATE * math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, mouse_x, mouse_y) / scale_factor / 64.0)
+					
+					love.graphics.setColor(255, 10, 10)
+					love.graphics.rectangle("fill",
+						sx - 62 * scale_factor + 124 * ((sprite.food - food_cost) / 100) * scale_factor,
+						sy - 62 * scale_factor,
+						124 * (food_cost / 100.0) * scale_factor,
+						12 * scale_factor)
+				end
+							
+			end
 		end
 				
 		sprite = sprite.next
@@ -370,64 +375,104 @@ function love.update(dt)
 		while sprite do
 			
 			-- Check for collisions with other raft sprites
-			if sprite.t == "Raft" then
+			if sprite.t == "Raft" or sprite.t == "Boat" then
 				other = sprites
 				
+				if sprite.t == "Raft" then
+					sprite.nearest_boat = nil
+					sprite.nearest_boat_d = 50000
+					
+				end
+				
 				while other do
-
-					if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
-						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
-						if col_dist < 128 then
-							dir = angle(sprite.x, sprite.y, other.x, other.y)
+					if sprite.t == "Raft" then
+						if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
+							col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 							
-							sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
-							sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
-						end
-					end
-					
-					if other.t == "Bullet" and other.state == "Enemy" and other.cleanup ~= true then
-						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
-						if col_dist < 128 then
-							if sprite.child ~= nil and sprite.child.state ~= "Dead" then
-								sprite.child.food = math.max(0, sprite.child.food - BULLET_DAMAGE)
-																
+							if col_dist < sprite.nearest_boat_d and other.t == "Boat" then
+								sprite.nearest_boat_d = col_dist
+								sprite.nearest_boat = other
 							end
 							
-							other.cleanup = true
-							
-							dir = angle(sprite.x, sprite.y, other.x, other.y)
-							
-							sprite.vx = sprite.vx + math.cos(dir) * BULLET_IMPACT
-							sprite.vy = sprite.vy + math.sin(dir) * BULLET_IMPACT
-							
-						end
-					end
-					
-					-- Fish collisions
-					if other.t == "Fish" and other.cleanup ~= true then
-						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
-						if col_dist < 128 then
-							if sprite.child ~= nil and sprite.child.state == "Active" then
-								sprite.child.food = math.min(100, sprite.child.food + FISH_FOOD_VAL)
-								
-								-- Feed all other actives
-								feed = sprites
-								while feed do
-									if feed.t == "Raftguy" and feed.state == "Active" and feed.food > 0 then
-										feed.food = math.min(100, feed.food + FISH_SHARE_VAL)
-									end
-									feed = feed.next
-								end
-																
-								-- Flag fish for removal
-								other.cleanup = true
-							else
+							if col_dist < 128 then
 								dir = angle(sprite.x, sprite.y, other.x, other.y)
-							
-								other.vx = other.vx - math.cos(dir) * (132 - col_dist) / 64.0
-								other.vy = other.vy - math.sin(dir) * (132 - col_dist) / 64.0
+								
+								sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
+								sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
 							end
-							
+						end
+						
+						if other.t == "Bullet" and other.state == "Enemy" and other.cleanup ~= true then
+							col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+							if col_dist < 128 then
+								if sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state ~= "Dead" then
+									sprite.child.food = math.max(0, sprite.child.food - BULLET_DAMAGE)
+																	
+								end
+								
+								other.cleanup = true
+								
+								dir = angle(sprite.x, sprite.y, other.x, other.y)
+								
+								sprite.vx = sprite.vx + math.cos(dir) * BULLET_IMPACT
+								sprite.vy = sprite.vy + math.sin(dir) * BULLET_IMPACT
+								
+							end
+						end
+						
+						-- Fish collisions
+						if other.t == "Fish" and other.cleanup ~= true then
+							col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+							if col_dist < 128 then
+								if sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state == "Active" and sprite.child.food > 0 then
+									sprite.child.food = math.min(100, sprite.child.food + FISH_FOOD_VAL)
+									
+									-- Feed all other actives
+									feed = sprites
+									while feed do
+										if feed.t == "Raftguy" and feed.state == "Active" and feed.food > 0 then
+											feed.food = math.min(100, feed.food + FISH_SHARE_VAL)
+										end
+										feed = feed.next
+									end
+																	
+									-- Flag fish for removal
+									other.cleanup = true
+								else
+									dir = angle(sprite.x, sprite.y, other.x, other.y)
+								
+									other.vx = other.vx - math.cos(dir) * (132 - col_dist) / 64.0
+									other.vy = other.vy - math.sin(dir) * (132 - col_dist) / 64.0
+								end
+								
+							end
+						end
+					elseif sprite.t == "Boat" then
+						
+						if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
+							col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+							if col_dist < 128 then
+								dir = angle(sprite.x, sprite.y, other.x, other.y)
+								
+								sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
+								sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+							end
+						end
+						
+						if other.t == "Bullet" and other.state == "Friendly" and other.cleanup ~= true then
+							col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+							if col_dist < 128 then
+								
+								sprite.health = math.max(0, sprite.health - BULLET_DAMAGE)																	
+											
+								other.cleanup = true
+								
+								dir = angle(sprite.x, sprite.y, other.x, other.y)
+								
+								sprite.vx = sprite.vx + math.cos(dir) * BULLET_IMPACT
+								sprite.vy = sprite.vy + math.sin(dir) * BULLET_IMPACT
+								
+							end
 						end
 					end
 					
@@ -594,8 +639,12 @@ function love.mousereleased(x, y, button)
 				ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
 				
 				if target_sprite.child ~= nil and target_sprite.child.state == "Sleep" then
-					target_sprite.child.state = "Active"
-					target_sprite.child.img = raftguy[0]
+					if target_sprite.child.t == "Raftguy" then
+						target_sprite.child.state = "Active"
+						target_sprite.child.img = raftguy[0]
+					elseif target_sprite.child.t == "FriendlyTurret" then
+						target_sprite.child.state = "Active"
+					end
 				end
 			end
 			

@@ -27,6 +27,7 @@ function addBoat(list)
 					child = nil,
 					target = nil,
 					target_timer = ticks,
+					health = 50,
 					cleanup = false,
 					controller =
 						function(self, dt) 
@@ -64,7 +65,7 @@ function addBoat(list)
 							self.x = self.x + self.vx
 							self.y = self.y + self.vy
 							
-							-- Update rotation of raft sprite if moving
+							-- Update rotation of boat sprite if moving
 							if dist(0, 0, self.vx, self.vy) > BOAT_TURN_THRESHOLD then
 								newdir = math.atan2(self.vy, self.vx)
 								self.r = angle_avg(self.r, newdir, BOAT_TURN)	
@@ -74,13 +75,17 @@ function addBoat(list)
 							self.vx = self.vx * BOAT_DECEL
 							self.vy = self.vy * BOAT_DECEL
 							
-							-- Decelerate raft
+							-- Decelerate boat
 							while dist(0, 0, self.vx, self.vy) > BOAT_MAX_VEL do
 								self.vx = self.vx * BOAT_DECEL
 								self.vy = self.vy * BOAT_DECEL
 							end
 							
-							
+							-- Destroy boat and turret if health is 0
+							if self.health <= 0 then
+								self.cleanup = 1
+								self.child.cleanup = 1
+							end
 						end}
 	return addTurret(list, list)
 end

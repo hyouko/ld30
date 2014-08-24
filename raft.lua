@@ -4,6 +4,7 @@ RAFT_DECEL = 0.98
 RAFT_TURN = 0.9
 RAFT_TURN_THRESHOLD = 1.5
 RAFT_MAX_VEL = 8
+RAFT_FIRE_DELAY = 3
 
 function addRaft(list)
 	list = {next = list,
@@ -20,6 +21,8 @@ function addRaft(list)
 					vx = 0,
 					vy = 0,
 					cleanup = false,
+					nearest_boat = nil,
+					nearest_boat_d = 500000,
 					child = nil,
 					controller =
 						function(self, dt) 
@@ -46,5 +49,44 @@ function addRaft(list)
 							
 							
 						end}
+	return list
+end
+
+function addFriendlyTurret(list, parent)
+	list = {next = list,
+						t = "FriendlyTurret",
+						state = "Sleep",
+						x = parent.x,
+						y = parent.y,
+						r = 0,
+						s = 1.0,
+						img = turret,
+						layer = 2,
+						shadow = true,
+						effect = 0,
+						order = i,
+						parent = parent,
+						cleanup = false,
+						fire_timer = ticks,
+						controller =
+							function(self, dt)
+								self.x = self.parent.x
+								self.y = self.parent.y
+								
+								if self.parent.nearest_boat ~= nil and self.state == "Active" then
+									self.r = angle_avg(self.r, sprite_angle(self.parent.nearest_boat, self.parent), 0.8)
+								end
+								
+								if self.fire_timer < ticks and self.state ==  "Active" then
+									sprites = addBullet(sprites, self, "Friendly")							
+									
+									self.fire_timer = ticks + RAFT_FIRE_DELAY
+								end
+								
+								
+								
+								
+							end}
+	parent.child = list
 	return list
 end
