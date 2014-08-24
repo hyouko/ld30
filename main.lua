@@ -4,6 +4,7 @@ require "util"
 require "raft"
 require "raftguy"
 require "fish"
+require "boat_base"
 
 require "rope"
 
@@ -50,6 +51,11 @@ function love.load()
 		sprites = addFish(sprites)
 	end
 	
+	-- Spawn some enemy boats
+	for i = 1, 20 do
+		sprites = addBoat(sprites)
+	end
+	
 	-- Spawn our hero!
 	
 	sprites = addRaft(sprites)
@@ -82,9 +88,14 @@ function loadImages()
 	raftguy[0] = love.graphics.newImage("gfx/raftguy_01.png")
 	raftguy[1] = love.graphics.newImage("gfx/raftguy_02.png")
 	raftguy[2] = love.graphics.newImage("gfx/raftguy_03.png")
+	
+	boat_base = love.graphics.newImage("gfx/boat_base.png")
 end
 
 function love.draw()
+	
+	t_test = love.timer.getTime()
+
 	love.graphics.setColor(10, 100, 210)
 	love.graphics.rectangle('fill', 0, 0, width, height)
 	
@@ -100,7 +111,7 @@ function love.draw()
 		
 		love.graphics.setColor(20, 20, 20)
 		
-		love.graphics.setLineWidth(2)
+		love.graphics.setLineWidth(2 * scale_factor)
 		
 		love.graphics.line(a_sx, a_sy, b_sx, b_sy)
 		
@@ -155,6 +166,14 @@ function love.draw()
 				sprite.r, sprite.s * scale_factor, sprite.s * scale_factor, 64, 64)
 		end
 		
+		if sprite.t == "Boat" then
+			if boat_debug and sprite.target ~= nil then
+				
+				love.graphics.print(sprite_dist(sprite, sprite.target), sx, sy)
+			end
+			
+		end
+		
 		if sprite.t == "Raftguy" then
 			-- Draw food bar for the raft guy
 						
@@ -175,6 +194,7 @@ function love.draw()
 					124 * (food_cost / 100.0) * scale_factor,
 					12 * scale_factor)
 			end
+			
 				
 		end
 				
@@ -230,6 +250,9 @@ function love.draw()
 		love.graphics.print("Ropes: " .. rope_count, 20, 60)
 	end
 	
+	
+	print (love.timer.getTime() - t_test)
+
 end
 
 -- Draw an animating layer of water
@@ -250,7 +273,7 @@ function love.update(dt)
 	ticks = ticks + dt
 	
 	--scale_factor = math.sin(ticks) * 0.25 + 1.0
-	for t = 0, dt, 1 / 60.0 do
+	for t = 0, math.min(4 / 60, dt), 1 / 60.0 do
 		cam_x = cam_x + cam_vx / scale_factor
 		cam_y = cam_y + cam_vy / scale_factor
 		
@@ -314,7 +337,11 @@ function love.update(dt)
 		end
 		
 		--Sort sprite objects
+		
+		
+		
 		sprites = mergeSort(sprites, sprite_compare)
+		
 		
 		
 		-- Handle rope constraints
@@ -337,7 +364,6 @@ function love.update(dt)
 		
 		sprite = sprites
 		i = 1
-		
 		while sprite do
 			
 			-- Check for collisions with other raft sprites
@@ -347,7 +373,7 @@ function love.update(dt)
 				
 				while other do
 					update_last = true
-					if other.t == "Raft" and other ~= sprite then
+					if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
 						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 						if col_dist < 128 then
 							dir = angle(sprite.x, sprite.y, other.x, other.y)
@@ -400,7 +426,6 @@ function love.update(dt)
 					end
 				end
 			end
-			
 			
 			-- Run sprite controller
 			if sprite.controller ~= nil then

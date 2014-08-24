@@ -16,7 +16,7 @@ function addRaft(list)
 					layer = 1,
 					shadow = true,
 					effect = 0,
-					order = i,
+					order = 0,
 					vx = 0,
 					vy = 0,
 					child = nil,

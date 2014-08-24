@@ -6,6 +6,11 @@ function sprite_dist(a, b)
 	return dist(a.x, a.y, b.x, b.y)
 end
 
+function sprite_angle(a, b)
+	return angle(a.x, a.y, b.x, b.y)
+end
+
+
 function angle(x1, y1, x2, y2)
 	return math.atan2((y1 - y2), (x1 - x2))
 end
@@ -139,4 +144,24 @@ function get_rope_forces(rope)
 		end
 		
 	return a_ax, a_ay, b_ax, b_ay
+end
+
+function get_random_nearby_target(boat)
+	target = nil
+	candidate = sprites
+	while candidate do
+		
+		d = sprite_dist(boat, candidate)
+		
+		if candidate.t == "Raftguy" and candidate.state ~= "Dead" and d >= BOAT_MIN_TARGET_RANGE and d <= BOAT_MAX_TARGET_RANGE then
+			
+			if target == nil or math.random(0, 9) == 9 then
+				target = candidate
+			end
+		end
+		
+		candidate = candidate.next
+	end
+	
+	return target
 end

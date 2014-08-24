@@ -8,6 +8,7 @@ end
 debug_on = true
 
 rope_debug = false
+boat_debug = false
 
 FISH_FOOD_VAL = 25.0
 FISH_SHARE_VAL = 5.0
