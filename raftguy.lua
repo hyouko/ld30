@@ -21,6 +21,14 @@ function addRaftguy(list, parent)
 								self.x = self.parent.x
 								self.y = self.parent.y - 16
 								
+								if self.food <= 0 and self.state ~= "Dead" then
+									self.img = raftguy[1]
+									self.state = "Dead"
+									
+									--love.audio.rewind(wav_yarr)
+									love.audio.play(wav_yarr)
+								end
+								
 								if self.state == "Sleep" then
 									self.img = raftguy[2]
 									self.food = val_clamp(self.food - dt * FOOD_LOSS_RATE / 3, 0, 100)
@@ -32,10 +40,7 @@ function addRaftguy(list, parent)
 									self.food = 0
 								end
 								
-								if self.food <= 0 then
-									self.img = raftguy[1]
-									self.state = "Dead"
-								end
+								
 							end}
 	parent.child = list
 	return list

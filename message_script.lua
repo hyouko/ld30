@@ -146,12 +146,12 @@ levels["level_2"] = {
 	win_loss_function = function()
 		awake_count, dead_count, fish_count, enemy_count, area_count = count_sprite_stats()
 		
-		if dead_count == 2 then
+		if dead_count == 2 or enemy_count <= 7 then
 			return "Loss"
 		elseif awake_count >= 8 then
 			return "Win"
 		else
-			return "Goal: Wake up "..(5 - awake_count).." more raft-folk"
+			return "Goal: Wake up "..(8 - awake_count).." more raft-folk; avoid the guards"
 		end
 	end}
 

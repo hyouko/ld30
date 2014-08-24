@@ -17,7 +17,8 @@ function love.load()
 	
 	width, height = love.graphics.getDimensions()
 	
-	loadImages()
+	load_images()
+	load_sounds()
 	
 	-- Camera coords
 	cam_x = 0.0
@@ -62,6 +63,13 @@ function setup_clean_level()
 	
 	sprites = nil
 	ropes = nil
+	
+	selected_sprite = nil
+	rope_sprite = nil
+	target_sprite = nil
+	ticks = 0
+	
+	tap_timer = 0
 end
 
 function setup_sandbox()
@@ -104,7 +112,15 @@ function setup_sandbox()
 
 end
 
-function loadImages()
+function load_sounds()
+	wav_ocean = love.audio.newSource("wav/wave_01.wav", "static")
+	wav_pop = love.audio.newSource("wav/pop_01.wav", "static")
+	wav_tap = love.audio.newSource("wav/tap_01.wav", "static")
+	wav_ping = love.audio.newSource("wav/ping_01.wav", "static")
+	wav_yarr = love.audio.newSource("wav/yarr_01.wav", "static")
+end
+
+function load_images()
 	
 	-- Water overlay images
 	water = {}
@@ -147,8 +163,6 @@ function love.draw()
 	drawWaterLayer(15, 0, math.pi * 1.5)
 	
 	if gamestate == "Title" then
-		
-		
 		
 		math.randomseed(13)
 		
@@ -615,6 +629,8 @@ function love.update(dt)
 									
 									sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
 									sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+									
+									play_tap()
 								end
 							end
 							
@@ -625,6 +641,8 @@ function love.update(dt)
 									
 									sprite.vx = sprite.vx + math.cos(dir) * MINE_BOUNCE_VEL
 									sprite.vy = sprite.vy + math.sin(dir) * MINE_BOUNCE_VEL
+									
+									play_ping()
 									
 									-- Deal damage if raft is occupied
 									if sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state ~= "Dead" then
@@ -679,7 +697,7 @@ function love.update(dt)
 								col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 								if col_dist < 128 then
 									dir = angle(sprite.x, sprite.y, other.x, other.y)
-									
+																		
 									sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
 									sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
 								end
@@ -690,7 +708,7 @@ function love.update(dt)
 								if col_dist < 128 then
 									
 									sprite.health = math.max(0, sprite.health - BULLET_DAMAGE)																	
-												
+									
 									other.cleanup = true
 									
 									dir = angle(sprite.x, sprite.y, other.x, other.y)
@@ -980,6 +998,9 @@ function love.mousereleased(x, y, button)
 				if target_sprite ~= nil and rope_sprite ~= target_sprite and not rope_exists(ropes, target_sprite, rope_sprite) and length <= ROPE_MAX_LENGTH then
 					ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
 					
+					--love.audio.rewind(wav_pop)
+					love.audio.play(wav_pop)
+					
 					if target_sprite.child ~= nil and target_sprite.child.state == "Sleep" then
 						if target_sprite.child.t == "Raftguy" then
 							target_sprite.child.state = "Active"
@@ -1006,3 +1027,18 @@ function love.mousereleased(x, y, button)
 	end
 end
 
+function play_tap()
+	if tap_timer < ticks then
+		tap_timer = ticks + 0.4
+		--love.audio.rewind(wav_tap)
+		love.audio.play(wav_tap)
+	end
+end
+
+function play_ping()
+	if tap_timer < ticks then
+		tap_timer = ticks + 0.1
+		--love.audio.rewind(wav_ping)
+		love.audio.play(wav_ping)
+	end
+end
