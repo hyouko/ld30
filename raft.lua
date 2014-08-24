@@ -19,6 +19,7 @@ function addRaft(list)
 					order = 0,
 					vx = 0,
 					vy = 0,
+					cleanup = false,
 					child = nil,
 					controller =
 						function(self, dt) 

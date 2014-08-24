@@ -90,11 +90,14 @@ function loadImages()
 	raftguy[2] = love.graphics.newImage("gfx/raftguy_03.png")
 	
 	boat_base = love.graphics.newImage("gfx/boat_base.png")
+	
+	turret = love.graphics.newImage("gfx/turret.png")
+	bullet = love.graphics.newImage("gfx/bullet.png")
 end
 
 function love.draw()
 	
-	t_test = love.timer.getTime()
+	--t_test = love.timer.getTime()
 
 	love.graphics.setColor(10, 100, 210)
 	love.graphics.rectangle('fill', 0, 0, width, height)
@@ -251,7 +254,7 @@ function love.draw()
 	end
 	
 	
-	print (love.timer.getTime() - t_test)
+	--print (love.timer.getTime() - t_test)
 
 end
 
@@ -369,10 +372,9 @@ function love.update(dt)
 			-- Check for collisions with other raft sprites
 			if sprite.t == "Raft" then
 				other = sprites
-				last = nil
 				
 				while other do
-					update_last = true
+
 					if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
 						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 						if col_dist < 128 then
@@ -383,8 +385,26 @@ function love.update(dt)
 						end
 					end
 					
+					if other.t == "Bullet" and other.state == "Enemy" and other.cleanup ~= true then
+						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+						if col_dist < 128 then
+							if sprite.child ~= nil and sprite.child.state ~= "Dead" then
+								sprite.child.food = math.max(0, sprite.child.food - BULLET_DAMAGE)
+																
+							end
+							
+							other.cleanup = true
+							
+							dir = angle(sprite.x, sprite.y, other.x, other.y)
+							
+							sprite.vx = sprite.vx + math.cos(dir) * BULLET_IMPACT
+							sprite.vy = sprite.vy + math.sin(dir) * BULLET_IMPACT
+							
+						end
+					end
+					
 					-- Fish collisions
-					if other.t == "Fish" then
+					if other.t == "Fish" and other.cleanup ~= true then
 						col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 						if col_dist < 128 then
 							if sprite.child ~= nil and sprite.child.state == "Active" then
@@ -393,21 +413,14 @@ function love.update(dt)
 								-- Feed all other actives
 								feed = sprites
 								while feed do
-									if feed.t == "Raftguy" and feed.state == "Active" then
+									if feed.t == "Raftguy" and feed.state == "Active" and feed.food > 0 then
 										feed.food = math.min(100, feed.food + FISH_SHARE_VAL)
 									end
 									feed = feed.next
 								end
-								
-								
-								-- Remove the fish 
-								if  last ~= nil  then
-									last.next = other.next
-								else
-									sprites = other.next
-								end
-								
-								update_last = false
+																
+								-- Flag fish for removal
+								other.cleanup = true
 							else
 								dir = angle(sprite.x, sprite.y, other.x, other.y)
 							
@@ -418,12 +431,9 @@ function love.update(dt)
 						end
 					end
 					
-					if other ~= nil then
-						if update_last then
-							last = other
-						end
-						other = other.next
-					end
+					
+					other = other.next
+					
 				end
 			end
 			
@@ -435,6 +445,8 @@ function love.update(dt)
 			i = i + 1
 			sprite = sprite.next
 		end
+		
+		sprites = cleanup_sprites(sprites)
 	end
 	
 	fps = math.ceil((1 / dt + fps * 29) / 3) / 10

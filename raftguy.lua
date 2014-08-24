@@ -15,7 +15,8 @@ function addRaftguy(list, parent)
 						layer = 2,
 						shadow = true,
 						effect = 0,
-						order = i,
+						order = 0,
+						cleanup = false,
 						parent = parent,
 						food = 100,
 						controller =

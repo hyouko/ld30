@@ -16,6 +16,7 @@ function addFish(list)
 					order = i,
 					vx = math.random() * 2 - 1,
 					vy = math.random() * 2 - 1,
+					cleanup = false,
 					controller =
 						function(self, dt)
 							self.x = self.x + self.vx

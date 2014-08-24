@@ -165,3 +165,25 @@ function get_random_nearby_target(boat)
 	
 	return target
 end
+
+function cleanup_sprites(list)
+	sprite = list
+	last = nil
+	
+	while sprite do
+		
+		if sprite.cleanup then
+			if last == nil then
+				list = sprite.next
+			else
+				last.next = sprite.next
+			end
+		else
+			last = sprite
+		end
+		
+		sprite = sprite.next
+	end
+	
+	return list
+end
