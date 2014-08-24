@@ -46,11 +46,20 @@ function love.load()
 	fps = 60
 end
 
-function setup_sandbox()
+
+function setup_clean_level()
+	set_default_constants()
+	
 	scale_factor = 0.6
 	cam_x = -width / 2
 	cam_y = -height / 2
+	
 	sprites = nil
+	ropes = nil
+end
+
+function setup_sandbox()
+	
 	-- Spawn some test raft sprites
 	for i = 1, 200 do
 		sprites = addRaft(sprites)
@@ -84,9 +93,7 @@ function setup_sandbox()
 	sprites.y = 50
 	sprites = addRaftguy(sprites, sprites)
 	sprites.state = "Active"
-	sprites.img = raftguy[0]
-	
-	ropes = nil
+
 end
 
 function loadImages()
@@ -472,7 +479,7 @@ function love.update(dt)
 			while sprite do
 				
 				-- Check for collisions with other raft sprites
-				if sprite.t == "Raft" or sprite.t == "Boat" then
+				if (sprite.t == "Raft" or sprite.t == "Boat" or sprite.t == "Fish") and sprite.cleanup ~= true then
 					other = sprites
 					
 					if sprite.t == "Raft" then
@@ -482,7 +489,19 @@ function love.update(dt)
 					end
 					
 					while other do
-						if sprite.t == "Raft" then
+						if sprite.t == "Fish" then
+							-- Bounce fish off of mines and rafts
+							if other.t == "Mine" or other.t == "Raft" then
+								col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+								if col_dist < 128 then
+									dir = angle(sprite.x, sprite.y, other.x, other.y)
+										
+									sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
+									sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+								end
+							end
+						
+						elseif sprite.t == "Raft" then
 							if (other.t == "Raft" or other.t == "Boat") and other ~= sprite then
 								col_dist = dist(sprite.x, sprite.y, other.x, other.y)
 								
@@ -550,11 +569,6 @@ function love.update(dt)
 																		
 										-- Flag fish for removal
 										other.cleanup = true
-									else
-										dir = angle(sprite.x, sprite.y, other.x, other.y)
-									
-										other.vx = other.vx - math.cos(dir) * (132 - col_dist) / 64.0
-										other.vy = other.vy - math.sin(dir) * (132 - col_dist) / 64.0
 									end
 									
 								end
@@ -758,10 +772,16 @@ function love.mousereleased(x, y, button)
 		-- 1st real level
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 70, 300, 50) then
 			-- Set first real level here!
+			
+			gamestate = "Message"
+			message_stack = lvl_1_stack
+			current_message = 1
+			
 		end
 		
 		-- Sandbox / test mode
 		if within_box(mouse_x, mouse_y, width / 3 + 12, height / 3 + 120, 300, 50) then
+			setup_clean_level()
 			setup_sandbox()
 			gamestate = "Game"
 		end
@@ -836,7 +856,6 @@ function love.mousereleased(x, y, button)
 					if target_sprite.child ~= nil and target_sprite.child.state == "Sleep" then
 						if target_sprite.child.t == "Raftguy" then
 							target_sprite.child.state = "Active"
-							target_sprite.child.img = raftguy[0]
 						elseif target_sprite.child.t == "FriendlyTurret" then
 							target_sprite.child.state = "Active"
 						end

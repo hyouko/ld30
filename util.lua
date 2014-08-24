@@ -236,3 +236,50 @@ function cleanup_sprites(list)
 	
 	return list
 end
+
+function load_level(level_name)
+	iterator = love.filesystem.lines("lvl/" ..level_name..".csv")
+	x = 0
+	y = 0
+	for line in iterator do
+		x = 0
+		for token in string.gmatch(line, "%w+") do
+			x = x + 1
+			if token == "m" then
+				-- Create a mine
+				sprites = addMine(sprites, x * 128, y * 128)
+				
+			elseif token == "r" then
+				-- Create a raft
+				-- TODO: link adjacent rafts w/ropes?
+				sprites = addRaft(sprites, x * 128, y * 128)
+				
+			elseif token == "a" then
+				-- Create raft w/active raftguy
+				sprites = addRaft(sprites, x * 128, y * 128)
+				sprites = addRaftguy(sprites, sprites)
+				sprites.state = "Active"
+				
+			elseif token == "f" then
+				-- Create fish
+				sprites = addFish(sprites, x * 128, y * 128)
+				
+			elseif token == "b" then
+				-- Create boat
+				sprites = addBoat(sprites, x * 128, y * 128)
+				
+			elseif token == "t" then
+				-- Create raft w/turret
+				sprites = addRaft(sprites, x * 128, y * 128)
+				sprites = addFriendlyTurret(sprites, sprites)
+				
+			elseif token == "g" then
+				-- Create raft w/inactive raftguy
+				sprites = addRaft(sprites, x * 128, y * 128)
+				sprites = addRaftguy(sprites, sprites)
+				
+			end
+		end
+		y = y + 1
+	end
+end

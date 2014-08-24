@@ -22,9 +22,14 @@ function addRaftguy(list, parent)
 								self.y = self.parent.y - 16
 								
 								if self.state == "Sleep" then
+									self.img = raftguy[2]
 									self.food = val_clamp(self.food - dt * FOOD_LOSS_RATE / 3, 0, 100)
 								elseif self.state == "Active" then
+									self.img = raftguy[0]
 									self.food = val_clamp(self.food - dt * FOOD_LOSS_RATE, 0, 100)
+								elseif self.state == "Dead" then
+									self.img = raftguy[1]
+									self.food = 0
 								end
 								
 								if self.food == 0 then

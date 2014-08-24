@@ -109,7 +109,7 @@ function addTurret(list, parent)
 								self.x = self.parent.x
 								self.y = self.parent.y
 								
-								if self.fire_timer < ticks then
+								if self.fire_timer < ticks and parent.target ~= nil then
 									sprites = addBullet(sprites, self, "Enemy")							
 									
 									self.fire_timer = ticks + BOAT_FIRE_DELAY
