@@ -5,6 +5,7 @@ require "raft"
 require "raftguy"
 require "fish"
 require "boat_base"
+require "mine"
 
 require "rope"
 
@@ -69,6 +70,10 @@ function setup_sandbox()
 		sprites = addBoat(sprites)
 	end
 	
+	for i = 1, 20 do
+		sprites = addMine(sprites)
+	end
+	
 	-- Spawn our hero!
 	
 	sprites = addRaft(sprites)
@@ -104,6 +109,7 @@ function loadImages()
 	turret = love.graphics.newImage("gfx/turret.png")
 	bullet = love.graphics.newImage("gfx/bullet.png")
 	wake = love.graphics.newImage("gfx/wake_02.png")
+	mine = love.graphics.newImage("gfx/mine.png")
 	
 	parchment = love.graphics.newImage("gfx/parchment.png")
 	
@@ -463,6 +469,21 @@ function love.update(dt)
 									
 									sprite.vx = sprite.vx + math.cos(dir) * (132 - col_dist) / 64.0
 									sprite.vy = sprite.vy + math.sin(dir) * (132 - col_dist) / 64.0
+								end
+							end
+							
+							if other.t == "Mine" then
+								col_dist = dist(sprite.x, sprite.y, other.x, other.y)
+								if col_dist < 128 then
+									dir = angle(sprite.x, sprite.y, other.x, other.y)
+									
+									sprite.vx = sprite.vx + math.cos(dir) * MINE_BOUNCE_VEL
+									sprite.vy = sprite.vy + math.sin(dir) * MINE_BOUNCE_VEL
+									
+									-- Deal damage if raft is occupied
+									if sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state ~= "Dead" then
+										sprite.child.food = math.max(0, sprite.child.food - MINE_DAMAGE)
+									end
 								end
 							end
 							
