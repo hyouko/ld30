@@ -73,7 +73,8 @@ function addFriendlyTurret(list, parent)
 								
 								if self.fire_timer < ticks and self.state ==  "Active" then
 									sprites = addBullet(sprites, self, "Friendly")							
-									
+									wav_boom:play()
+
 									self.fire_timer = ticks + RAFT_FIRE_DELAY
 								end
 								

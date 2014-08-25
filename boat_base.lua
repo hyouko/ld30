@@ -112,7 +112,7 @@ function addTurret(list, parent)
 								
 								if self.fire_timer < ticks and parent.target ~= nil then
 									sprites = addBullet(sprites, self, "Enemy")							
-									
+									wav_boom:play()
 									self.fire_timer = ticks + BOAT_FIRE_DELAY
 								end
 								
@@ -133,7 +133,7 @@ function addWake(list, parent)
 					x = parent.x,
 					y = parent.y,
 					r = angle(parent.vx, parent.vy, 0, 0),
-					s = 1,
+					s = 0.8,
 					img = wake,
 					layer = 0,
 					shadow = false,

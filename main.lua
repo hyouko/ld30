@@ -118,6 +118,8 @@ function load_sounds()
 	wav_tap = love.audio.newSource("wav/tap_01.wav", "static")
 	wav_ping = love.audio.newSource("wav/ping_01.wav", "static")
 	wav_yarr = love.audio.newSource("wav/yarr_01.wav", "static")
+	wav_mmm = love.audio.newSource("wav/mmm_01.wav", "static")
+	wav_boom = love.audio.newSource("wav/boom_01.wav", "static")
 end
 
 function load_images()
@@ -684,7 +686,9 @@ function love.update(dt)
 											end
 											feed = feed.next
 										end
-																		
+										
+										wav_mmm:play()
+										
 										-- Flag fish for removal
 										other.cleanup = true
 									end
@@ -867,17 +871,17 @@ function love.mousepressed(x, y, button)
 				selection_starty = y
 			end
 		elseif button == "r" then
-			sprite = sprites
+			r = sprites
 			rope_sprite = nil
-			while sprite do
+			while r do
 				
-				sx, sy = to_screenspace(sprite.x, sprite.y)
+				sx, sy = to_screenspace(r.x, r.y)
 				
-				if sprite.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and sprite.child ~= nil and sprite.child.t == "Raftguy" and sprite.child.state == "Active" then
-					rope_sprite = sprite
+				if r.t == "Raft" and dist(x, y, sx, sy) <= 64 * scale_factor and r.child ~= nil and r.child.t == "Raftguy" and r.child.state == "Active" then
+					rope_sprite = r
 				end
 				
-				sprite = sprite.next
+				r = r.next
 			end
 			
 			if rope_sprite ~= nil then
@@ -999,7 +1003,7 @@ function love.mousereleased(x, y, button)
 					ropes = addRope(ropes, rope_sprite, target_sprite, sprite_dist(rope_sprite, target_sprite) * 1.05)
 					
 					--love.audio.rewind(wav_pop)
-					love.audio.play(wav_pop)
+					wav_pop:play()
 					
 					if target_sprite.child ~= nil and target_sprite.child.state == "Sleep" then
 						if target_sprite.child.t == "Raftguy" then
@@ -1028,17 +1032,17 @@ function love.mousereleased(x, y, button)
 end
 
 function play_tap()
-	if tap_timer < ticks then
+	if tap_timer < ticks and current_level ~= nil then
 		tap_timer = ticks + 0.4
 		--love.audio.rewind(wav_tap)
-		love.audio.play(wav_tap)
+		wav_tap:play()
 	end
 end
 
 function play_ping()
-	if tap_timer < ticks then
+	if tap_timer < ticks and current_level ~= nil then
 		tap_timer = ticks + 0.1
 		--love.audio.rewind(wav_ping)
-		love.audio.play(wav_ping)
+		wav_ping:play()
 	end
 end

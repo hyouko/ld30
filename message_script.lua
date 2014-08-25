@@ -128,14 +128,14 @@ levels["level_2"] = {
 	title = "Prison break!",
 	message_stack = {"Nobody should have to live in this floating prison.  Not even the guards.",
 	"I want to get in and out quiet-like... the game will be up if I take out too many guards.  One or two wouldn't hurt though.",
-	"Goal: \n Save 4 other raft-folk!"},
+	"Goal: \n Save 6 other raft-folk!"},
 	setup_function = function()
 		setup_clean_level()
 		
 		load_level("level_2")
 		
 		BOAT_MIN_TARGET_RANGE = 300
-		BOAT_MAX_TARGET_RANGE = 800
+		BOAT_MAX_TARGET_RANGE = 700
 						
 		cam_x = 0
 		cam_y = 0
@@ -146,12 +146,12 @@ levels["level_2"] = {
 	win_loss_function = function()
 		awake_count, dead_count, fish_count, enemy_count, area_count = count_sprite_stats()
 		
-		if dead_count == 2 or enemy_count <= 7 then
+		if dead_count >= 4 or enemy_count <= 7 or awake_count == 0 then
 			return "Loss"
-		elseif awake_count >= 8 then
+		elseif awake_count >= 7 then
 			return "Win"
 		else
-			return "Goal: Wake up "..(8 - awake_count).." more raft-folk; avoid the guards"
+			return "Goal: Wake up "..(7 - awake_count).." more raft-folk; avoid the guards"
 		end
 	end}
 
@@ -165,14 +165,14 @@ levels["level_3"] = {
 		load_level("level_3")
 		
 		-- 1st outer wave
-		for i = 0, 10 do
+		for i = 0, 8 do
 			rad = math.random() * math.pi * 2
 			sprites = addBoat(sprites, (128 * 30) + math.cos(rad) * 128 * 50, (128 * 30) + math.sin(rad) * 128 * 50)
 			
 		end
 		
 		-- Final wave
-		for i = 0, 20 do
+		for i = 0, 16 do
 			rad = math.random() * math.pi * 2
 			sprites = addBoat(sprites, (128 * 30) + math.cos(rad) * 128 * 80, (128 * 30) + math.sin(rad) * 128 * 100)
 			

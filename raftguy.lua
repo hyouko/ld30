@@ -26,7 +26,7 @@ function addRaftguy(list, parent)
 									self.state = "Dead"
 									
 									--love.audio.rewind(wav_yarr)
-									love.audio.play(wav_yarr)
+									wav_yarr:play()
 								end
 								
 								if self.state == "Sleep" then
