@@ -14,7 +14,7 @@ Adrift on the ocean, find your friends or you will surely perish.
 
 Click and drag awake raft guys (|.|) with the [left mouse button] to sling them around
 Click and drag from awake raft guys (|.|) to other rafts / sleeping raft guys(-_-) with the [right mouse button] to rope them together
-Disengage all ropes from a raft by clicking with both the [left mouse button] and [right mouse button]
+Disengage all ropes from a raft by clicking with both the [left mouse button] and [right mouse button], or by pressing [space]
 Use the [mouse wheel] to zoom in and out
 Scroll around the world by bringing the mouse to the corner of the screen
 
