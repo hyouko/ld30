@@ -148,9 +148,9 @@ function load_images()
 	
 	parchment = love.graphics.newImage("gfx/parchment.png")
 	
-	font_small = love.graphics.newFont('gfx/driftfont_2.ttf', 26)
-	font_big = love.graphics.newFont('gfx/driftfont_2.ttf', 34)
-	font_huge = love.graphics.newFont('gfx/driftfont_2.ttf', 200)
+	font_small = love.graphics.newFont('gfx/driftfont_3.ttf', 26)
+	font_big = love.graphics.newFont('gfx/driftfont_3.ttf', 34)
+	font_huge = love.graphics.newFont('gfx/driftfont_3.ttf', 200)
 	
 	love.graphics.setFont(font_small)
 end
