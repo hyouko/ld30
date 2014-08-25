@@ -830,6 +830,13 @@ function love.keyreleased(key)
 		elseif key == "/" and debug_on then
 			gamestate = "Fin"
 			fin_timer = ticks
+		elseif key == " " then
+			if rope_sprite ~= nil then
+				release_sprite_ropes(rope_sprite)
+			end
+			if selected_sprite ~= nil then
+				release_sprite_ropes(selected_sprite)
+			end
 		end
 	elseif gamestate == "Win" then
 		play_level(levels[current_level].next_level)
@@ -896,7 +903,6 @@ function love.mousepressed(x, y, button)
 			
 			zoom_timer = ticks + 0.25
 			
-			
 		elseif button == "wu" then
 			zoom_out = false
 			zoom_in = true
@@ -945,16 +951,7 @@ function love.mousereleased(x, y, button)
 		if button == "l" then
 			
 			if rope_sprite ~= nil then
-				length = dist(rope_sprite.x, rope_sprite.y, mx, my)
-				
-				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
-					ropes = release_ropes(ropes, selected_sprite)
-					
-				end
-				
-				rope_sprite.effect = 0
-				selected_sprite = nil
-				rope_sprite = nil
+				release_sprite_ropes(rope_sprite)
 				
 			elseif selected_sprite ~= nil then
 				vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
@@ -971,15 +968,7 @@ function love.mousereleased(x, y, button)
 			end
 		elseif button == "r" then
 			if selected_sprite ~= nil then
-				length = dist(selected_sprite.x, selected_sprite.y, mx, my)
-				
-				if length <= 80 * scale_factor and selected_sprite == rope_sprite then
-					ropes = release_ropes(ropes, selected_sprite)
-										
-				end
-				selected_sprite.effect = 0
-				selected_sprite = nil
-				rope_sprite = nil
+				release_sprite_ropes(selected_sprite)
 				
 			elseif rope_sprite ~= nil then
 				sprite = sprites
@@ -1030,6 +1019,22 @@ function love.mousereleased(x, y, button)
 		play_level(current_level)
 	end
 end
+
+function release_sprite_ropes(target)
+	mx, my = to_worldspace(mouse_x, mouse_y)
+	length = dist(target.x, target.y, mx, my)
+				
+	if length <= 96 * scale_factor then
+		print "bleh"
+		ropes = release_ropes(ropes, selected_sprite)
+		ropes = release_ropes(ropes, rope_sprite)
+	end
+	
+	target.effect = 0
+	selected_sprite = nil
+	rope_sprite = nil
+end
+
 
 function play_tap()
 	if tap_timer < ticks and current_level ~= nil then
