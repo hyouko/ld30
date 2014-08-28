@@ -211,7 +211,7 @@ function love.draw()
 		love.graphics.print("Drift", width / 3 - 10, 60 + math.sin(ticks) * height / 64)
 		
 		love.graphics.setColor(30, 200, 255)
-		love.graphics.print("Drift", width / 3 - 10, 50 + math.sin(ticks) * height / 64)
+		outline_print("Drift", width / 3 - 10, 50 + math.sin(ticks) * height / 64)
 		
 		love.graphics.setColor(255, 255, 255)
 		love.graphics.draw(parchment, width / 3 - 80, height / 3 - 70)
@@ -255,9 +255,10 @@ function love.draw()
 		love.graphics.draw(parchment, width / 3 - 80, height / 3 - 70)
 		
 		love.graphics.setFont(font_small)
+		
 		love.graphics.setColor(10, 50, 100)
 		
-		fake_bold_print(levels[current_level].title, width / 3 + 12, height / 3 - 10, 2)
+		outline_print(levels[current_level].title, width / 3 + 12, height / 3 - 10, 2)
 		
 		fake_bold_printf(message_stack[current_message], width / 3 + 12, height / 3 + 20, 300, 1)
 		
@@ -434,7 +435,7 @@ function love.draw()
 		if level_state ~= nil and gamestate == "Game" then
 			love.graphics.setColor(30, 200, 255)
 			love.graphics.setFont(font_big)
-			fake_bold_print(level_state, 30, height - 40, 1)
+			outline_print(level_state, 30, height - 40, 1)
 		end
 		
 		if gamestate == "Win" then
@@ -444,11 +445,11 @@ function love.draw()
 			love.graphics.print("Success!", width / 3 - 100, 60 + math.sin(ticks) * height / 64)
 		
 			love.graphics.setColor(30, 200, 255)
-			love.graphics.print("Success!", width / 3 - 100, 50 + math.sin(ticks) * height / 64)
+			outline_print("Success!", width / 3 - 100, 50 + math.sin(ticks) * height / 64)
 			
 			love.graphics.setFont(font_big)
 			
-			fake_bold_print("Press any key to continue to the next level...", width / 3 - 110, height / 4, 1)
+			outline_print("Press any key to continue to the next level...", width / 3 - 110, height / 4, 1)
 		elseif gamestate == "Loss" then
 			love.graphics.setFont(font_huge)
 		
@@ -456,11 +457,11 @@ function love.draw()
 			love.graphics.print("Failure...", width / 3 - 90, 60 + math.sin(ticks) * height / 64)
 		
 			love.graphics.setColor(30, 200, 255)
-			love.graphics.print("Failure...", width / 3 - 90, 50 + math.sin(ticks) * height / 64)
+			outline_print("Failure...", width / 3 - 90, 50 + math.sin(ticks) * height / 64)
 			
 			love.graphics.setFont(font_big)
 			
-			fake_bold_print("Press any key to try again...", width / 3 - 30, height / 4, 1)
+			outline_print("Press any key to try again...", width / 3 - 30, height / 4, 1)
 		elseif gamestate == "Fin" then
 			love.graphics.setFont(font_huge)
 			
@@ -472,12 +473,12 @@ function love.draw()
 			love.graphics.print("Drift", width / 3 - 10, 60 + math.sin(ticks) * height / 64)
 			
 			love.graphics.setColor(30, 200, 255, 55 + fade * 2)
-			love.graphics.print("Drift", width / 3 - 10, 50 + math.sin(ticks) * height / 64)
+			outline_print("Drift", width / 3 - 10, 50 + math.sin(ticks) * height / 64)
 			
 			love.graphics.setFont(font_big)
-			fake_bold_print("~fin~", width / 2 - 20, height / 4, 1)
+			outline_print("~fin~", width / 2 - 20, height / 4, 1)
 			
-			fake_bold_print("Ludum Dare 30 - Connected Worlds",  width / 2 - 205, height / 4 + 80, 1)
+			outline_print("Ludum Dare 30 - Connected Worlds",  width / 2 - 205, height / 4 + 80, 1)
 			
 		end
 		
@@ -954,8 +955,10 @@ function love.mousereleased(x, y, button)
 				release_sprite_ropes(rope_sprite)
 				
 			elseif selected_sprite ~= nil then
-				vel = math.min(RAFT_MAX_VEL, dist(selection_startx, selection_starty, x, y) / scale_factor / 64.0)
-				dir = -angle(selection_startx, selection_starty, x, y)
+				mx, my = to_worldspace(x, y)
+				
+				vel = math.min(RAFT_MAX_VEL, dist(selected_sprite.x, selected_sprite.y, mx, my) / scale_factor / 64.0)
+				dir = -angle(selected_sprite.x, selected_sprite.y, mx, my)
 				
 				selected_sprite.vx = -math.cos(dir) * vel
 				selected_sprite.vy = math.sin(dir) * vel

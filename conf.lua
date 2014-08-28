@@ -54,6 +54,6 @@ function set_default_constants()
 	WAKE_LIFESPAN = 1
 	WAKE_DELAY = 0.25
 
-	MINE_BOUNCE_VEL = 8
+	MINE_BOUNCE_VEL = 5
 	MINE_DAMAGE = 20
 end

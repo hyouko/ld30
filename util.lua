@@ -49,6 +49,23 @@ function fake_bold_print(text, x, y, rpt)
 	end
 end
 
+function outline_print(text, x, y)
+	
+	r, g, b, a = love.graphics.getColor()
+	
+	love.graphics.setColor(10, 20, 100)
+	
+	for i = 0, 2 do
+		for ii = 0, 2 do
+			love.graphics.print(text, x + i, y + ii)
+		end
+	end
+	
+	love.graphics.setColor(r, g, b)
+	
+	love.graphics.print(text, x + 1, y + 1)
+end
+
 function fake_bold_printf(text, x, y, limit, rpt)
 	
 	for i = 0, rpt do
@@ -57,6 +74,8 @@ function fake_bold_printf(text, x, y, limit, rpt)
 		end
 	end
 end
+
+
 
 -- merge sort, for z-ordering
 function mergeSort(list, compare_func)
