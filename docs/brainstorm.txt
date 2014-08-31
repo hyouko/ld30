@@ -1,0 +1,40 @@
+Ludum Dare 30 - Connected Worlds
+
+Concept brainstorm time!
+
+Theme-appropriate mechanics and concepts for "connected" :
+
+- Connected / directed graphs
+- Physical connections (chains/ropes/attracting forces, etc.)
+- Non-physical connections (relationships, etc.)
+- Rabbit holes, portals, etc.
+
+Theme-appropriate mechanics and concepts for "worlds" :
+
+- Mario-style 'worlds' (sets of thematically related, discrete levels)
+- Planetary bodies
+- Universes (and alternate universes)
+- Spheres  of awareness / mental models of the world
+
+...
+
+Drift!
+
+Ocean setting - semi-Gargantia-esque. Control collections of rafts, boats, etc. coupled together in an ad-hoc fashion (ropes, chains, etc.)
+
+Roles that individual component rafts can play:
+
+- Propulsion
+- Food production (farming - constant low food production)
+- Food production (fishing - high food production when over regions with fish, until depleted)
+- Combat (attack and subdue enemy rafts within range)
+- Housing (ups max connection limit)
+
+------
+
+Level ideas!
+
+Prison Break - Yank some raftguys from the narrow confines of a floating prison.
+Straits of Malacca - Must navigate at least 2 (live) raftguys to the far side of a treacherous rock field
+YATDG - Tower defense, Drift-style.
+A Friend for the End - Find someone else in the wide, wide ocean before you die.  (Success = 1 dead, 1 awake)
